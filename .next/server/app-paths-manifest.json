@@ -1,0 +1,6 @@
+{
+  "/algorithms/[slug]/attempt/page": "app/algorithms/[slug]/attempt/page.js",
+  "/algorithms/page": "app/algorithms/page.js",
+  "/algorithms/[slug]/page": "app/algorithms/[slug]/page.js",
+  "/page": "app/page.js"
+}

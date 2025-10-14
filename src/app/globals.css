@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  @apply bg-background text-white;
+  background-image: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.2), transparent 35%),
+    radial-gradient(circle at 80% 0%, rgba(139, 92, 246, 0.15), transparent 45%),
+    radial-gradient(circle at 50% 100%, rgba(14, 165, 233, 0.18), transparent 55%);
+  background-color: #050b1a;
+  min-height: 100vh;
+}
+
+a {
+  @apply text-accent transition-colors duration-200 hover:text-white;
+}
+
+@layer components {
+  .auth-input {
+    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40;
+  }
+}

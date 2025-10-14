@@ -1,0 +1,329 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  STUDENT
+  MENTOR
+  ADMIN
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  ADVANCED
+}
+
+enum SubmissionStatus {
+  QUEUED
+  RUNNING
+  PASSED
+  FAILED
+  COMPILE_ERROR
+  RUNTIME_ERROR
+}
+
+enum ProjectStatus {
+  PROTOTYPE
+  IN_REVIEW
+  LAUNCHED
+  ARCHIVED
+}
+
+enum StoryStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum TagDomain {
+  PROBLEM
+  STORY
+  PROJECT
+}
+
+model User {
+  id             String      @id @default(cuid())
+  username       String      @unique
+  email          String      @unique
+  hashedPassword String
+  name           String?
+  pronouns       String?
+  avatarUrl      String?
+  bio            String?
+  major          String?
+  graduationYear Int?
+  role           Role        @default(STUDENT)
+  universityId   String?
+  university     University? @relation(fields: [universityId], references: [id])
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  submissions         Submission[]
+  stories             Story[]
+  projects            Project[]
+  comments            Comment[]
+  votes               Vote[]
+  reviewedSubmissions Submission[]   @relation("SubmissionReviewer")
+  notifications       Notification[]
+
+  followers Follow[]  @relation("userFollowers")
+  following Follow[]  @relation("userFollowing")
+  Problem   Problem[]
+  
+  accounts Account[]
+  sessions Session[]
+}
+
+
+model University {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  country     String
+  city        String?
+  description String?
+  createdAt   DateTime @default(now())
+
+  members  User[]
+  stories  Story[]
+  projects Project[]
+}
+
+model Problem {
+  id            String     @id @default(cuid())
+  slug          String     @unique
+  title         String
+  summary       String     @db.Text
+  statement     String     @db.LongText
+  difficulty    Difficulty
+  timeLimitMs   Int?
+  memoryLimitKb Int?
+  createdById   String?
+  createdBy     User?      @relation(fields: [createdById], references: [id])
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  tags        ProblemTag[]
+  testcases   Testcase[]
+  submissions Submission[]
+  dailyPicks  DailyPick[]
+}
+
+model DailyPick {
+  id        String   @id @default(cuid())
+  date      DateTime @unique
+  problemId String
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+}
+
+model Testcase {
+  id        String  @id @default(cuid())
+  problemId String
+  input     String
+  output    String
+  isSample  Boolean @default(false)
+
+  problem Problem @relation(fields: [problemId], references: [id])
+}
+
+model Submission {
+  id           String           @id @default(cuid())
+  userId       String
+  problemId    String
+  language     String
+  code         String           @db.LongText
+  status       SubmissionStatus @default(QUEUED)
+  score        Int?
+  runtimeMs    Int?
+  memoryKb     Int?
+  reviewerId   String?
+  reviewerNote String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id])
+  problem  Problem   @relation(fields: [problemId], references: [id])
+  reviewer User?     @relation("SubmissionReviewer", fields: [reviewerId], references: [id])
+  comments Comment[]
+  votes    Vote[]
+}
+
+model Story {
+  id           String      @id @default(cuid())
+  slug         String      @unique
+  authorId     String
+  universityId String?
+  title        String
+  excerpt      String?
+  body         String      @db.LongText
+  status       StoryStatus @default(DRAFT)
+  publishedAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  author     User        @relation(fields: [authorId], references: [id])
+  university University? @relation(fields: [universityId], references: [id])
+  tags       StoryTag[]
+  comments   Comment[]
+  votes      Vote[]
+}
+
+model Project {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  ownerId      String
+  universityId String?
+  title        String
+  summary      String
+  description  String        @db.LongText
+  repoUrl      String?
+  demoUrl      String?
+  status       ProjectStatus @default(PROTOTYPE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  owner      User         @relation(fields: [ownerId], references: [id])
+  university University?  @relation(fields: [universityId], references: [id])
+  tags       ProjectTag[]
+  comments   Comment[]
+  votes      Vote[]
+}
+
+model Comment {
+  id           String   @id @default(cuid())
+  authorId     String
+  storyId      String?
+  projectId    String?
+  submissionId String?
+  body         String
+  createdAt    DateTime @default(now())
+
+  author     User        @relation(fields: [authorId], references: [id])
+  story      Story?      @relation(fields: [storyId], references: [id])
+  project    Project?    @relation(fields: [projectId], references: [id])
+  submission Submission? @relation(fields: [submissionId], references: [id])
+}
+
+model Vote {
+  id           String   @id @default(cuid())
+  userId       String
+  storyId      String?
+  projectId    String?
+  submissionId String?
+  value        Int
+  createdAt    DateTime @default(now())
+
+  user       User        @relation(fields: [userId], references: [id])
+  story      Story?      @relation(fields: [storyId], references: [id])
+  project    Project?    @relation(fields: [projectId], references: [id])
+  submission Submission? @relation(fields: [submissionId], references: [id])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("userFollowing", fields: [followerId], references: [id])
+  following User @relation("userFollowers", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+
+
+model Tag {
+  id        String    @id @default(cuid())
+  domain    TagDomain
+  name      String
+  createdAt DateTime  @default(now())
+
+  problemTags ProblemTag[]
+  storyTags   StoryTag[]
+  projectTags ProjectTag[]
+
+  @@unique([domain, name], map: "domain_name")
+}
+
+model ProblemTag {
+  problemId String
+  tagId     String
+
+  problem Problem @relation(fields: [problemId], references: [id])
+  tag     Tag     @relation(fields: [tagId], references: [id])
+
+  @@id([problemId, tagId])
+}
+
+model StoryTag {
+  storyId String
+  tagId   String
+
+  story Story @relation(fields: [storyId], references: [id])
+  tag   Tag   @relation(fields: [tagId], references: [id])
+
+  @@id([storyId, tagId])
+}
+
+model ProjectTag {
+  projectId String
+  tagId     String
+
+  project Project @relation(fields: [projectId], references: [id])
+  tag     Tag     @relation(fields: [tagId], references: [id])
+
+  @@id([projectId, tagId])
+}
