@@ -152,11 +152,11 @@ export async function POST(request: NextRequest) {
             : evaluation.status === "FAILED"
               ? SubmissionStatus.FAILED
               : SubmissionStatus.RUNNING,
-        runtimeMs =
+        runtimeMs:
           typeof evaluation.time === "number"
             ? Math.round(evaluation.time * 1000)
             : null,
-        memoryKb =
+        memoryKb:
           typeof evaluation.memory === "number" ? evaluation.memory : null,
         score: evaluation.status === "COMPLETED" ? 1 : 0,
       };
