@@ -1,11 +1,7 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { fetchProblemDetail } from "@/lib/data";
 
-type Params = {
-  params: { slug: string };
-};
-
-export async function GET({ params }: Params) {
+export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
   const detail = await fetchProblemDetail(params.slug);
 
   if (!detail) {
