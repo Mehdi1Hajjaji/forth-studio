@@ -1,8 +1,9 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { fetchProblemDetail } from "@/lib/data";
 
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
-  const detail = await fetchProblemDetail(params.slug);
+  const slug = params.slug;
+  const detail = await fetchProblemDetail(slug);
 
   if (!detail) {
     return NextResponse.json(
