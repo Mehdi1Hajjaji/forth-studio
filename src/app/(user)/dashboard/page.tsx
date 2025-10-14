@@ -161,7 +161,7 @@ export default async function DashboardPage() {
                 Top solution
               </p>
               <h3 className="text-lg font-semibold text-white">
-                {primarySubmission
+                {primarySubmission && "problem" in primarySubmission
                   ? primarySubmission.problem.title
                   : "Solve a challenge to be featured"}
               </h3>
