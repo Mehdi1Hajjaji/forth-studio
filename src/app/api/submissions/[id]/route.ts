@@ -1,10 +1,6 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
-type Params = {
-  params: { id: string };
-};
-
-export function GET({ params }: Params) {
+export function GET(request: NextRequest, { params }: { params: { id: string } }) {
   return NextResponse.json({
     data: null,
     message: `Submission ${params.id} is pending storage integration.`,
