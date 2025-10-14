@@ -173,7 +173,7 @@ export default async function DashboardPage() {
             ) : null}
           </header>
           <p className="mt-3 text-sm text-white/65">
-            {primarySubmission?.reviewerNote ??
+            {(primarySubmission && "reviewerNote" in primarySubmission && primarySubmission.reviewerNote) ??
               "Once your submission receives mentor feedback, we'll surface the highlights here."}
           </p>
           {primarySubmission ? (

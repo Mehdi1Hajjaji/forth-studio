@@ -115,11 +115,6 @@ export default async function AlgorithmDetailPage({
                   </p>
                 )}
               </div>
-              {sample?.explanation ? (
-                <p className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/60">
-                  {sample.explanation}
-                </p>
-              ) : null}
             </section>
 
             <section
