@@ -25,7 +25,7 @@ function ensureSecret(): string {
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
-    strategy: "database",
+    strategy: "jwt",
   },
   secret: ensureSecret(),
   pages: {
