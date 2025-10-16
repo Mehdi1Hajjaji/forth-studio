@@ -1,5 +1,5 @@
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -101,7 +101,7 @@ model Problem {
   slug          String     @unique
   title         String
   summary       String     @db.Text
-  statement     String     @db.LongText
+  statement     String     @db.Text
   difficulty    Difficulty
   timeLimitMs   Int?
   memoryLimitKb Int?
@@ -139,7 +139,7 @@ model Submission {
   userId       String
   problemId    String
   language     String
-  code         String           @db.LongText
+  code         String           @db.Text
   status       SubmissionStatus @default(QUEUED)
   score        Int?
   runtimeMs    Int?
@@ -163,7 +163,7 @@ model Story {
   universityId String?
   title        String
   excerpt      String?
-  body         String      @db.LongText
+  body         String      @db.Text
   status       StoryStatus @default(DRAFT)
   publishedAt  DateTime?
   createdAt    DateTime    @default(now())
@@ -183,7 +183,7 @@ model Project {
   universityId String?
   title        String
   summary      String
-  description  String        @db.LongText
+  description  String        @db.Text
   repoUrl      String?
   demoUrl      String?
   status       ProjectStatus @default(PROTOTYPE)
