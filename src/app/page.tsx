@@ -14,8 +14,17 @@ type AlgorithmHighlight =
   Awaited<ReturnType<typeof fetchLandingHighlights>>["algorithmOfDay"];
 
 export default async function Home() {
-  const { algorithmOfDay, campusInsights, communityCreations } =
-    await fetchLandingHighlights();
+  let algorithmOfDay: any = null;
+  let campusInsights: any[] = [];
+  let communityCreations: any[] = [];
+  try {
+    const data = await fetchLandingHighlights();
+    algorithmOfDay = data.algorithmOfDay;
+    campusInsights = data.campusInsights;
+    communityCreations = data.communityCreations;
+  } catch (err) {
+    // graceful fallback when DB is unreachable at runtime
+  }
 
   return (
     <div className="min-h-screen text-white">

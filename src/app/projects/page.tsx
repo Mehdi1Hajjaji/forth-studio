@@ -11,7 +11,12 @@ export const metadata: Metadata = {
 };
 
 export default async function ProjectsPage() {
-  const projects = await fetchProjectSummaries();
+  let projects = [] as Awaited<ReturnType<typeof fetchProjectSummaries>>;
+  try {
+    projects = await fetchProjectSummaries();
+  } catch (err) {
+    projects = [];
+  }
 
   return (
     <PageWrapper>

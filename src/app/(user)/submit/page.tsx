@@ -4,7 +4,12 @@ import { fetchProblemList } from "@/lib/data";
 import { SubmitForm } from "./SubmitForm";
 
 export default async function SubmitPage() {
-  const problems = await fetchProblemList();
+  let problems = [] as Awaited<ReturnType<typeof fetchProblemList>>;
+  try {
+    problems = await fetchProblemList();
+  } catch (err) {
+    problems = [];
+  }
 
   return (
     <DashboardShell

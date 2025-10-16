@@ -3,7 +3,12 @@ import { PageWrapper } from "@/components/layout/PageWrapper";
 import { fetchProjectSummaries } from "@/lib/data";
 
 export default async function PublicProjectsPage() {
-  const projects = await fetchProjectSummaries();
+  let projects = [] as Awaited<ReturnType<typeof fetchProjectSummaries>>;
+  try {
+    projects = await fetchProjectSummaries();
+  } catch (err) {
+    projects = [];
+  }
   return (
     <PageWrapper>
       <header className="space-y-4 rounded-3xl border border-white/5 bg-surface/70 p-8">

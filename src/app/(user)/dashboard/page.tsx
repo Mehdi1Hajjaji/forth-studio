@@ -3,8 +3,29 @@ import { DashboardShell } from "@/components/layout/DashboardShell";
 import { fetchBestSubmissions, fetchDashboardData } from "@/lib/data";
 
 export default async function DashboardPage() {
-  const [{ nextProblem, stats, draftStory, latestProject, featuredStory, topSubmission }, bestSubmissions] =
-    await Promise.all([fetchDashboardData(), fetchBestSubmissions(1)]);
+  let nextProblem: any = null;
+  let stats: any = { solvedCount: 0, weeklySubmissions: 0, feedbackCount: 0 };
+  let draftStory: any = null;
+  let latestProject: any = null;
+  let featuredStory: any = null;
+  let topSubmission: any = null;
+  let bestSubmissions: any[] = [];
+
+  try {
+    const [d, subs] = await Promise.all([
+      fetchDashboardData(),
+      fetchBestSubmissions(1),
+    ]);
+    nextProblem = d.nextProblem;
+    stats = d.stats;
+    draftStory = d.draftStory;
+    latestProject = d.latestProject;
+    featuredStory = d.featuredStory;
+    topSubmission = d.topSubmission;
+    bestSubmissions = subs;
+  } catch (err) {
+    // graceful fallback
+  }
 
   const primarySubmission = topSubmission ?? bestSubmissions[0] ?? null;
 
@@ -64,12 +85,12 @@ export default async function DashboardPage() {
           {nextProblem ? (
             <>
               <div className="flex flex-wrap gap-2">
-                {nextProblem.tags.map(({ tag }) => (
+                {nextProblem.tags.map((t: any) => (
                   <span
-                    key={tag.id}
+                    key={t.tag.id}
                     className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-white/70"
                   >
-                    #{tag.name}
+                    #{t.tag.name}
                   </span>
                 ))}
               </div>
@@ -237,3 +258,4 @@ function ArrowRightIcon({ className }: { className?: string }) {
   );
 }
 export const dynamic = 'force-dynamic';
+

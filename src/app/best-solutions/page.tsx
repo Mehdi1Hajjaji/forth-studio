@@ -11,7 +11,12 @@ export const metadata: Metadata = {
 };
 
 export default async function BestSolutionsPage() {
-  const submissions = await fetchBestSubmissions();
+  let submissions = [] as Awaited<ReturnType<typeof fetchBestSubmissions>>;
+  try {
+    submissions = await fetchBestSubmissions();
+  } catch (err) {
+    submissions = [];
+  }
 
   return (
     <PageWrapper>

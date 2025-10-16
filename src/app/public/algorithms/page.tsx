@@ -3,7 +3,12 @@ import { PageWrapper } from "@/components/layout/PageWrapper";
 import { fetchProblemList } from "@/lib/data";
 
 export default async function PublicAlgorithmsPage() {
-  const algorithms = await fetchProblemList();
+  let algorithms = [] as Awaited<ReturnType<typeof fetchProblemList>>;
+  try {
+    algorithms = await fetchProblemList();
+  } catch (err) {
+    algorithms = [];
+  }
   return (
     <PageWrapper>
       <header className="space-y-4 rounded-3xl border border-white/5 bg-surface/70 p-8">

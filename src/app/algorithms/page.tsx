@@ -20,7 +20,12 @@ export const metadata: Metadata = {
 };
 
 export default async function AlgorithmsPage() {
-  const problems = await fetchProblemList();
+  let problems = [] as Awaited<ReturnType<typeof fetchProblemList>>;
+  try {
+    problems = await fetchProblemList();
+  } catch (err) {
+    problems = [];
+  }
 
   return (
     <PageWrapper>
