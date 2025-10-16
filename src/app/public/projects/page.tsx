@@ -76,3 +76,4 @@ function ArrowRightIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+export const dynamic = 'force-dynamic';

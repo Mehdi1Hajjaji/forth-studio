@@ -9,3 +9,4 @@ export async function GET() {
     meta: { total: projects.length },
   });
 }
+export const dynamic = 'force-dynamic';

@@ -67,3 +67,4 @@ export default async function PublicAlgorithmsPage() {
     </PageWrapper>
   );
 }
+export const dynamic = 'force-dynamic';

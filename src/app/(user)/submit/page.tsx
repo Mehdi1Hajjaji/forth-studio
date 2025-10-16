@@ -24,4 +24,4 @@ export default async function SubmitPage() {
     </DashboardShell>
   );
 }
-
+export const dynamic = 'force-dynamic';
