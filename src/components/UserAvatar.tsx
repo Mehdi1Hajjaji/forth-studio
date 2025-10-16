@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 
 type UserAvatarProps = {
   name?: string | null;
@@ -23,11 +24,12 @@ export default function UserAvatar({
   const dimension = `${size}px`;
 
   return imageUrl ? (
-    <img
+    <Image
       src={imageUrl}
       alt={name ?? "User"}
       width={size}
       height={size}
+      unoptimized
       className={
         "inline-block rounded-full border border-white/10 object-cover " +
         (className ?? "")
