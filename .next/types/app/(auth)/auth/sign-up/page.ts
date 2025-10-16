@@ -1,4 +1,4 @@
-// File: c:\Users\pc\OneDrive\Desktop\forth.studio\src\app\(auth)\auth\sign-up\page.tsx
+// File: C:\Users\pc\OneDrive\Desktop\forth.studio\src\app\(auth)\auth\sign-up\page.tsx
 import * as entry from '../../../../../../src/app/(auth)/auth/sign-up/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

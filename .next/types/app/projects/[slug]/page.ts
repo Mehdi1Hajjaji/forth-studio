@@ -1,4 +1,4 @@
-// File: c:\Users\pc\OneDrive\Desktop\forth.studio\src\app\projects\[slug]\page.tsx
+// File: C:\Users\pc\OneDrive\Desktop\forth.studio\src\app\projects\[slug]\page.tsx
 import * as entry from '../../../../../src/app/projects/[slug]/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

@@ -111,21 +111,21 @@ export async function fetchStorySummaries(filters?: StorySummaryFilters) {
     const term = search.trim();
     if (term) {
       where.OR = [
-        { title: { contains: term, mode: "insensitive" } },
-        { excerpt: { contains: term, mode: "insensitive" } },
-        { body: { contains: term, mode: "insensitive" } },
+        { title: { contains: term } },
+        { excerpt: { contains: term } },
+        { body: { contains: term } },
         {
           tags: {
             some: {
-              tag: { name: { contains: term, mode: "insensitive" } },
+              tag: { name: { contains: term } },
             },
           },
         },
         {
           author: {
             OR: [
-              { name: { contains: term, mode: "insensitive" } },
-              { username: { contains: term, mode: "insensitive" } },
+              { name: { contains: term } },
+              { username: { contains: term } },
             ],
           },
         },
@@ -180,6 +180,7 @@ export async function fetchStoryDetail(slug: string) {
       author: {
         include: { university: true },
       },
+      university: true,
     },
   });
 }
@@ -211,6 +212,7 @@ export async function fetchProjectDetail(slug: string) {
   return prisma.project.findUnique({
     where: { slug },
     include: {
+      university: true,
       owner: { include: { university: true } },
       tags: { include: { tag: true } },
       comments: {
@@ -466,9 +468,9 @@ export async function fetchTopTags(domain: TagDomain, limit = 6) {
   const tags = await prisma.tag.findMany({
     where: { domain },
     include: {
-      problems: domain === TagDomain.PROBLEM,
-      stories: domain === TagDomain.STORY,
-      projects: domain === TagDomain.PROJECT,
+      problemTags: domain === TagDomain.PROBLEM,
+      storyTags: domain === TagDomain.STORY,
+      projectTags: domain === TagDomain.PROJECT,
     },
     take: limit,
   });
@@ -477,10 +479,10 @@ export async function fetchTopTags(domain: TagDomain, limit = 6) {
     name: tag.name,
     usage:
       domain === TagDomain.PROBLEM
-        ? tag.problems.length
+        ? tag.problemTags.length
         : domain === TagDomain.STORY
-          ? tag.stories.length
-          : tag.projects.length,
+          ? tag.storyTags.length
+          : tag.projectTags.length,
   }));
 }
 

@@ -4,6 +4,7 @@
 # Fichiers de build
 /dist
 /build
+.next
 
 # Fichiers d'environnement
 .env
