@@ -80,7 +80,8 @@ async function main() {
   }
 
   await prisma.$transaction(async (tx) => {
-    const delegate = (tx as any).resilienceAward;
+    const txAny = tx as any;
+    const delegate = txAny.resilienceAward;
     if (!delegate) {
       throw new Error("ResilienceAward delegate is unavailable on this Prisma client.");
     }
@@ -95,7 +96,7 @@ async function main() {
       },
     });
 
-    await tx.user.update({
+    await txAny.user.update({
       where: { id: winner.userId },
       data: {
         resilienceBadgeCount: { increment: 1 },
