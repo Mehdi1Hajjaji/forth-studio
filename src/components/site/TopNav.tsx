@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { AuthButtons } from "./AuthButtons";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 const navLinks = [
   { label: "Algorithms", href: "/algorithms" },
   { label: "Stories", href: "/stories" },
+  { label: "Fail Wall", href: "/fail-wall" },
   { label: "Best Solutions", href: "/best-solutions" },
 ];
 
@@ -37,6 +39,7 @@ export function TopNav() {
             Ctrl K
           </kbd>
         </div>
+        <ThemeToggle />
         <AuthButtons />
       </div>
     </header>

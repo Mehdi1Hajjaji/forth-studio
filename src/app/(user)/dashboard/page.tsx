@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { DashboardShell } from "@/components/layout/DashboardShell";
+import { ForthHero } from "@/components/visuals/ForthHero";
+import { SplashIntro } from "@/components/motion/SplashIntro";
 import { fetchBestSubmissions, fetchDashboardData } from "@/lib/data";
+import { GlowingCarousel } from "@/components/visuals/GlowingCarousel";
 
 export default async function DashboardPage() {
   let nextProblem: any = null;
@@ -34,6 +37,7 @@ export default async function DashboardPage() {
       title="Studio dashboard"
       description="Track your streak, drafts, and community feedback from one place."
       activePath="/dashboard"
+      hero={<ForthHero />}
       actions={
         <Link
           href="/submit"
@@ -43,6 +47,7 @@ export default async function DashboardPage() {
         </Link>
       }
     >
+      <SplashIntro imageSrc="/splash.jpg" />
       <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         <StatCard
           title="Solved challenges"
@@ -60,6 +65,34 @@ export default async function DashboardPage() {
           description="Mentors and peers who reviewed your projects recently."
         />
       </section>
+
+      <GlowingCarousel
+        items={[
+          {
+            title: "Student Success Stories",
+            description:
+              "Weekly wins and problem write-ups curated from across the network.",
+            badge: "Featured",
+          },
+          {
+            title: "Interview Prep",
+            description: "Handpicked DS&A questions with clean solution patterns.",
+            badge: "New",
+          },
+          {
+            title: "Open Source Projects",
+            description: "Find teams looking for contributors and ship PRs.",
+          },
+          {
+            title: "Recruitment Board",
+            description: "Internships and early roles from community partners.",
+          },
+          {
+            title: "Campus Leaderboard",
+            description: "Track streaks and climb with your chapter.",
+          },
+        ]}
+      />
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
         <article className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-6">

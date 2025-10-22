@@ -10,6 +10,7 @@ generator client {
 enum Role {
   STUDENT
   MENTOR
+  INVESTOR
   ADMIN
 }
 
@@ -60,8 +61,11 @@ model User {
   major          String?
   graduationYear Int?
   role           Role        @default(STUDENT)
+  xp             Int         @default(0)
   universityId   String?
   university     University? @relation(fields: [universityId], references: [id])
+  resilienceBadgeCount    Int       @default(0)
+  resilienceBadgeEarnedAt DateTime?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
@@ -72,6 +76,10 @@ model User {
   votes               Vote[]
   reviewedSubmissions Submission[]   @relation("SubmissionReviewer")
   notifications       Notification[]
+  failPosts           FailPost[]
+  failPostLikes       FailPostLike[]
+  failPostComments    FailPostComment[]
+  resilienceAwards    ResilienceAward[]
 
   followers Follow[]  @relation("userFollowers")
   following Follow[]  @relation("userFollowing")
@@ -281,6 +289,61 @@ model VerificationToken {
   token      String @unique
   expires    DateTime
   @@unique([identifier, token])
+}
+
+
+model FailPost {
+  id             String   @id @default(cuid())
+  userId         String
+  projectAttempt String
+  failureReason  String   @db.Text
+  lessonLearned  String   @db.Text
+  likesCount     Int      @default(0)
+  commentsCount  Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  author   User             @relation(fields: [userId], references: [id])
+  likes    FailPostLike[]
+  comments FailPostComment[]
+  awards   ResilienceAward[]
+}
+
+model FailPostLike {
+  userId     String
+  failPostId String
+  createdAt  DateTime @default(now())
+
+  user User     @relation(fields: [userId], references: [id])
+  post FailPost @relation(fields: [failPostId], references: [id])
+
+  @@id([userId, failPostId])
+}
+
+model FailPostComment {
+  id         String   @id @default(cuid())
+  failPostId String
+  authorId   String
+  body       String   @db.Text
+  createdAt  DateTime @default(now())
+
+  post   FailPost @relation(fields: [failPostId], references: [id])
+  author User     @relation(fields: [authorId], references: [id])
+}
+
+model ResilienceAward {
+  id              String   @id @default(cuid())
+  failPostId      String
+  userId          String
+  engagementScore Int
+  periodStart     DateTime
+  periodEnd       DateTime
+  createdAt       DateTime @default(now())
+
+  post FailPost @relation(fields: [failPostId], references: [id])
+  user User     @relation(fields: [userId], references: [id])
+
+  @@unique([periodStart, periodEnd])
 }
 
 

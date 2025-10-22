@@ -128,6 +128,11 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Award XP for activity (ignored if column not yet migrated)
+    try {
+      await (prisma.user as any).update({ where: { id: userId }, data: { xp: { increment: 10 } } });
+    } catch {}
+
     const sample = problem.testcases[0];
     let evaluation: Awaited<
       ReturnType<typeof evaluateWithJudge0>

@@ -208,6 +208,58 @@ export async function fetchProjectSummaries() {
   }));
 }
 
+export async function fetchFailPosts(options?: {
+  sort?: "newest" | "resilient";
+  limit?: number;
+  viewerId?: string | null;
+}) {
+  const sort = options?.sort ?? "newest";
+  const limit = options?.limit ?? 20;
+
+  const orderBy =
+    sort === "resilient"
+      ? [{ likesCount: "desc" as const }, { commentsCount: "desc" as const }, { createdAt: "desc" as const }]
+      : [{ createdAt: "desc" as const }];
+
+  const include: Prisma.FailPostInclude = {
+    author: {
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        avatarUrl: true,
+        resilienceBadgeCount: true,
+        resilienceBadgeEarnedAt: true,
+      },
+    },
+  };
+
+  if (options?.viewerId) {
+    include.likes = {
+      where: { userId: options.viewerId },
+      select: { userId: true },
+    };
+  }
+
+  const posts = await prisma.failPost.findMany({
+    include,
+    orderBy,
+    take: Math.min(Math.max(limit, 1), 50),
+  });
+
+  return posts.map((post) => {
+    const { likes, ...rest } = post as typeof post & { likes?: { userId: string }[] };
+    const likedByViewer = Array.isArray(likes) ? likes.length > 0 : false;
+    return {
+      ...rest,
+      likedByViewer,
+      engagementScore: rest.likesCount + rest.commentsCount * 2,
+    };
+  });
+}
+
+export type FailPostSummary = Awaited<ReturnType<typeof fetchFailPosts>>[number];
+
 export async function fetchProjectDetail(slug: string) {
   return prisma.project.findUnique({
     where: { slug },

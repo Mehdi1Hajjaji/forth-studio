@@ -1,16 +1,18 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
+  darkMode: "class",
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        background: "#050B1A",
-        surface: "#111827",
-        "surface-muted": "#1F2937",
+        // CSS variable-driven palette so theme can switch at runtime
+        background: "rgb(var(--background) / <alpha-value>)",
+        surface: "rgb(var(--surface) / <alpha-value>)",
+        "surface-muted": "rgb(var(--surface-muted) / <alpha-value>)",
         accent: {
-          DEFAULT: "#6366F1",
-          foreground: "#F5F3FF",
+          DEFAULT: "rgb(var(--accent) / <alpha-value>)",
+          foreground: "rgb(var(--accent-foreground) / <alpha-value>)",
         },
         success: "#22C55E",
       },
