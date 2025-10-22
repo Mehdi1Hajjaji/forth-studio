@@ -101,7 +101,7 @@ async function main() {
       data: {
         resilienceBadgeCount: { increment: 1 },
         resilienceBadgeEarnedAt: new Date(),
-      },
+      } as any,
     });
   });
 
