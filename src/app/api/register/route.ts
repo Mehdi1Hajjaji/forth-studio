@@ -2,23 +2,25 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { parseRegisterInput } from "@/lib/validators";
 import { hash } from "bcryptjs";
-import { Role } from "@prisma/client";
+import type { Role } from "@prisma/client";
 
 function jsonError(message: string, status = 400, details?: unknown) {
   return NextResponse.json({ error: message, details }, { status });
 }
 
+const ROLE_VALUES = {
+  student: "STUDENT",
+  mentor: "MENTOR",
+  investor: "INVESTOR",
+  admin: "ADMIN",
+} as const;
+
+type RoleKey = keyof typeof ROLE_VALUES;
+
 function toRole(value?: string | null): Role {
-  switch ((value ?? "student").toLowerCase()) {
-    case "admin":
-      return Role.ADMIN;
-    case "mentor":
-      return Role.MENTOR;
-    case "investor":
-      return Role.INVESTOR;
-    default:
-      return Role.STUDENT;
-  }
+  const key = (value ?? "student").toLowerCase() as RoleKey;
+  const resolved = ROLE_VALUES[key] ?? ROLE_VALUES.student;
+  return resolved as Role;
 }
 
 function sanitizeUsername(raw: string) {

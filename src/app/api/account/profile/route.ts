@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { parseUpdateProfile } from "@/lib/validators";
-import { Role } from "@prisma/client";
+import type { Role } from "@prisma/client";
 
 function jsonError(message: string, status = 400, details?: unknown) {
   return NextResponse.json({ error: message, details }, { status });
@@ -23,12 +23,14 @@ export async function PATCH(request: Request) {
 
   const data: Record<string, unknown> = {};
   if (input.role) {
-    const roleMap: Record<string, Role> = {
-      student: Role.STUDENT,
-      mentor: Role.MENTOR,
-      investor: Role.INVESTOR,
-    };
-    data.role = roleMap[input.role];
+    const normalized = (input.role ?? "student").toLowerCase();
+    const roleMap = {
+      student: "STUDENT",
+      mentor: "MENTOR",
+      investor: "INVESTOR",
+    } as const;
+    const resolved = roleMap[normalized as keyof typeof roleMap] ?? roleMap.student;
+    data.role = resolved as Role;
   }
   if (Object.prototype.hasOwnProperty.call(input, "universityId")) {
     data.universityId = input.universityId ?? null;
