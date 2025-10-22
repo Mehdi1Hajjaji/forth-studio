@@ -1,5 +1,7 @@
 import prisma from "../src/lib/prisma";
 
+const client = prisma as any;
+
 function startOfDay(date: Date) {
   const copy = new Date(date);
   copy.setHours(0, 0, 0, 0);
@@ -12,7 +14,7 @@ async function main() {
   const periodStart = new Date(periodEnd);
   periodStart.setDate(periodStart.getDate() - 7);
 
-  const existing = await prisma.resilienceAward.findUnique({
+  const existing = await client.resilienceAward?.findUnique({
     where: {
       periodStart_periodEnd: {
         periodStart,
@@ -26,7 +28,12 @@ async function main() {
     return;
   }
 
-  const posts = await prisma.failPost.findMany({
+  const failPostDelegate = client.failPost ?? (prisma as any).failPost;
+  if (!failPostDelegate) {
+    throw new Error("FailPost delegate is unavailable on this Prisma client.");
+  }
+
+  const posts = (await failPostDelegate.findMany({
     where: {
       createdAt: {
         gte: periodStart,
@@ -40,7 +47,13 @@ async function main() {
       commentsCount: true,
       projectAttempt: true,
     },
-  });
+  })) as Array<{
+    id: string;
+    userId: string;
+    likesCount: number;
+    commentsCount: number;
+    projectAttempt: string;
+  }>;
 
   if (!posts.length) {
     console.log("No fail posts to evaluate for this period.");
@@ -67,7 +80,12 @@ async function main() {
   }
 
   await prisma.$transaction(async (tx) => {
-    await tx.resilienceAward.create({
+    const delegate = (tx as any).resilienceAward;
+    if (!delegate) {
+      throw new Error("ResilienceAward delegate is unavailable on this Prisma client.");
+    }
+
+    await delegate.create({
       data: {
         failPostId: winner.id,
         userId: winner.userId,
@@ -98,4 +116,3 @@ main()
     await prisma.$disconnect();
     process.exit(1);
   });
-
