@@ -28,7 +28,8 @@ export async function POST(
     return jsonError("Invalid comment payload.", 422, (error as any)?.errors ?? error);
   }
 
-  const comment = await prisma.$transaction(async (tx) => {
+  const prismaAny = prisma as any;
+  const comment = await prismaAny.$transaction(async (tx: any) => {
     const created = await tx.failPostComment.create({
       data: {
         failPostId,
@@ -68,4 +69,3 @@ export async function POST(
     },
   });
 }
-

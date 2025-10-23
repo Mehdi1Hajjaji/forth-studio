@@ -94,6 +94,7 @@ export default function FailPostCard({ post, currentUserId, onLikeUpdate, onComm
   };
 
   const authorName = post.author.name || post.author.username || 'Anonymous';
+  const badgeCount = post.author.resilienceBadgeCount ?? 0;
   const createdAt = new Date(post.createdAt).toLocaleString(undefined, {
     month: 'short',
     day: 'numeric',
@@ -107,9 +108,9 @@ export default function FailPostCard({ post, currentUserId, onLikeUpdate, onComm
           <div>
             <p className="text-sm font-semibold text-white">
               {authorName}
-              {post.author.resilienceBadgeCount > 0 ? (
+              {badgeCount > 0 ? (
                 <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-accent/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent-foreground">
-                  Resilience x{post.author.resilienceBadgeCount}
+                  Resilience x{badgeCount}
                 </span>
               ) : null}
             </p>

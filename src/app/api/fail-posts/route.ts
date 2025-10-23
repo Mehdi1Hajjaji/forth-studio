@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getCurrentUser } from "@/lib/auth";
 import { parseFailPostInput } from "@/lib/validators";
@@ -22,7 +21,7 @@ export async function GET(request: NextRequest) {
       ? [{ likesCount: "desc" as const }, { commentsCount: "desc" as const }, { createdAt: "desc" as const }]
       : [{ createdAt: "desc" as const }];
 
-  const include: Prisma.FailPostInclude = {
+  const include: any = {
     author: {
       select: {
         id: true,
@@ -42,11 +41,31 @@ export async function GET(request: NextRequest) {
     };
   }
 
-  const posts = await prisma.failPost.findMany({
+  const prismaAny = prisma as any;
+  const posts = (await prismaAny.failPost.findMany({
     include,
     orderBy,
     take: limit,
-  });
+  })) as Array<{
+    id: string;
+    userId: string;
+    projectAttempt: string;
+    failureReason: string;
+    lessonLearned: string;
+    likesCount: number;
+    commentsCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+    author: {
+      id: string;
+      username: string | null;
+      name: string | null;
+      avatarUrl: string | null;
+      resilienceBadgeCount?: number | null;
+      resilienceBadgeEarnedAt?: Date | null;
+    };
+    likes?: { userId: string }[];
+  }>;
 
   const data = posts.map((post) => {
     const { likes, ...rest } = post as typeof post & { likes?: { userId: string }[] };
@@ -73,7 +92,8 @@ export async function POST(request: Request) {
     return jsonError("Invalid fail post payload.", 422, (error as any)?.errors ?? error);
   }
 
-  const post = await prisma.failPost.create({
+  const prismaAny = prisma as any;
+  const post = (await prismaAny.failPost.create({
     data: {
       userId: sessionUser.id,
       projectAttempt: input.projectAttempt,
@@ -92,7 +112,25 @@ export async function POST(request: Request) {
         },
       },
     },
-  });
+  })) as {
+    id: string;
+    userId: string;
+    projectAttempt: string;
+    failureReason: string;
+    lessonLearned: string;
+    likesCount: number;
+    commentsCount: number;
+    createdAt: Date;
+    updatedAt: Date;
+    author: {
+      id: string;
+      username: string | null;
+      name: string | null;
+      avatarUrl: string | null;
+      resilienceBadgeCount?: number | null;
+      resilienceBadgeEarnedAt?: Date | null;
+    };
+  };
 
   return NextResponse.json(
     {

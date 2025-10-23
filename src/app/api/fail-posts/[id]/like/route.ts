@@ -20,7 +20,8 @@ export async function POST(
     return jsonError("Fail post id is required.", 400);
   }
 
-  const result = await prisma.$transaction(async (tx) => {
+  const prismaAny = prisma as any;
+  const result = await prismaAny.$transaction(async (tx: any) => {
     const existing = await tx.failPostLike.findUnique({
       where: { userId_failPostId: { userId: sessionUser.id, failPostId } },
     });
@@ -57,4 +58,3 @@ export async function POST(
     },
   });
 }
-
