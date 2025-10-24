@@ -10,17 +10,17 @@ export const dynamic = 'force-dynamic';
  */
 export default async function CodeCryPage() {
   const [live, upcoming, past] = await Promise.all([
-    prisma.codeCrySession.findMany({
+    (prisma as any).codeCrySession.findMany({
       where: { startedAt: { not: null }, endedAt: null },
       orderBy: { startedAt: 'desc' },
       take: 3,
     }),
-    prisma.codeCrySession.findMany({
+    (prisma as any).codeCrySession.findMany({
       where: { startedAt: null, scheduledFor: { gt: new Date() } },
       orderBy: { scheduledFor: 'asc' },
       take: 5,
     }),
-    prisma.codeCrySession.findMany({
+    (prisma as any).codeCrySession.findMany({
       where: { endedAt: { not: null } },
       orderBy: [{ endedAt: 'desc' }, { startedAt: 'desc' }],
       take: 5,
@@ -40,7 +40,7 @@ export default async function CodeCryPage() {
         <section>
           <h2 className="text-xl font-semibold mb-3">Live Now</h2>
           <ul className="grid gap-3 md:grid-cols-2">
-            {live.map((s) => (
+            {(live as any[]).map((s: any) => (
               <li key={s.id} className="rounded border p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -63,7 +63,7 @@ export default async function CodeCryPage() {
           {upcoming.length === 0 && (
             <li className="text-sm text-muted-foreground">No sessions scheduled. Check back soon.</li>
           )}
-          {upcoming.map((s) => (
+          {(upcoming as any[]).map((s: any) => (
             <li key={s.id} className="flex items-center justify-between border-b py-2">
               <div>
                 <p className="font-medium">{s.title}</p>
@@ -80,7 +80,7 @@ export default async function CodeCryPage() {
       <section>
         <h2 className="text-xl font-semibold mb-3">Recent</h2>
         <ul className="grid gap-3 md:grid-cols-2">
-          {past.map((s) => (
+          {(past as any[]).map((s: any) => (
             <li key={s.id} className="rounded border p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -100,4 +100,3 @@ export default async function CodeCryPage() {
     </div>
   );
 }
-

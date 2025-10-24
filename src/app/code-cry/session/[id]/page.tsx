@@ -8,7 +8,7 @@ interface Props { params: { id: string } }
 
 export default async function CodeCrySessionPage({ params }: Props) {
   const [session, viewer] = await Promise.all([
-    prisma.codeCrySession.findUnique({ where: { id: params.id } }),
+    (prisma as any).codeCrySession.findUnique({ where: { id: params.id } }),
     getCurrentUser(),
   ]);
   if (!session) {

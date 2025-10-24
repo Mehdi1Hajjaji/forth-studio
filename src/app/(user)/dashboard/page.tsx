@@ -36,7 +36,7 @@ export default async function DashboardPage() {
   const primarySubmission = topSubmission ?? bestSubmissions[0] ?? null;
   const viewer = await getCurrentUser();
   const mySessions = viewer?.id
-    ? await prisma.codeCrySession.findMany({ where: { hostId: viewer.id }, orderBy: [{ scheduledFor: 'asc' }, { createdAt: 'desc' }], take: 5 })
+    ? await (prisma as any).codeCrySession.findMany({ where: { hostId: viewer.id }, orderBy: [{ scheduledFor: 'asc' }, { createdAt: 'desc' }], take: 5 })
     : [];
 
   return (
@@ -87,7 +87,7 @@ export default async function DashboardPage() {
               <p className="text-sm text-muted">Create your first session and invite the community to help you debug in real time.</p>
             ) : (
               <ul className="space-y-2">
-                {mySessions.map((s) => (
+                {(mySessions as any[]).map((s: any) => (
                   <li key={s.id} className="flex items-center justify-between rounded-xl border border-border/45 bg-surface/80 px-3 py-2 text-sm">
                     <div>
                       <div className="font-medium">{s.title}</div>
