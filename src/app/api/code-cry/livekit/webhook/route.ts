@@ -50,7 +50,7 @@ export async function POST(req: Request) {
   if (urlCandidates.length > 0) {
     const recordingUrl = String(urlCandidates[0]);
     try {
-      const updated = await prisma.codeCrySession.update({
+      const updated = await (prisma as any).codeCrySession.update({
         where: { roomName },
         data: { recordingUrl, endedAt: new Date() },
       });
@@ -63,7 +63,7 @@ export async function POST(req: Request) {
   // If it's a room end without URL, we can still mark ended
   if (payload?.event === 'room_finished' || payload?.type === 'room_finished') {
     try {
-      const updated = await prisma.codeCrySession.update({ where: { roomName }, data: { endedAt: new Date() } });
+      const updated = await (prisma as any).codeCrySession.update({ where: { roomName }, data: { endedAt: new Date() } });
       return json({ ok: true, sessionId: updated.id, ended: true });
     } catch (e: any) {
       return json({ ok: false, error: e?.message ?? String(e) }, 500);
