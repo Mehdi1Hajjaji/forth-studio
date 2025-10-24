@@ -36,7 +36,7 @@ export default function LiveSessionClient({ sessionId, roomName, title, descript
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [audioId, setAudioId] = useState<string>('');
   const [videoId, setVideoId] = useState<string>('');
-  const room = useRoomContext();
+  // Note: do not call useRoomContext() here; only inside children of LiveKitRoom
 
   async function fetchToken(role: 'publisher' | 'subscriber') {
     const res = await fetch(`/api/code-cry/session/${sessionId}/token`, {
@@ -90,19 +90,7 @@ export default function LiveSessionClient({ sessionId, roomName, title, descript
     return () => es.close();
   }, [sessionId]);
 
-  useEffect(() => {
-    const onData = (payload: Uint8Array) => {
-      try {
-        const text = new TextDecoder().decode(payload);
-        const evt = JSON.parse(text);
-        if (evt?.type === 'promoted' && !isHost) {
-          setPromotionPrompt(true);
-        }
-      } catch {}
-    };
-    room?.on?.('dataReceived', onData);
-    return () => { room?.off?.('dataReceived', onData); };
-  }, [room, isHost]);
+  // data events subscription is handled inside LiveKitRoom via DataEventBridge
 
   return (
     <div className="grid h-full grid-cols-1 md:grid-cols-[1fr_360px]">
@@ -256,6 +244,7 @@ export default function LiveSessionClient({ sessionId, roomName, title, descript
             onDisconnected={() => setJoined(false)}
             className="grid h-full grid-cols-1 md:grid-cols-[1fr_360px]"
           >
+            <DataEventBridge onPromoted={() => { if (!isHost) setPromotionPrompt(true); }} />
             <RoomAudioRenderer />
             <div className="grid flex-1 grid-rows-2 overflow-hidden">
               <div className="min-h-0 overflow-hidden">
@@ -278,6 +267,24 @@ export default function LiveSessionClient({ sessionId, roomName, title, descript
       </div>
     </div>
   );
+}
+
+function DataEventBridge({ onPromoted }: { onPromoted: () => void }) {
+  const room = useRoomContext();
+  useEffect(() => {
+    const onData = (payload: Uint8Array) => {
+      try {
+        const text = new TextDecoder().decode(payload);
+        const evt = JSON.parse(text);
+        if (evt?.type === 'promoted') {
+          onPromoted();
+        }
+      } catch {}
+    };
+    room?.on?.('dataReceived', onData);
+    return () => { room?.off?.('dataReceived', onData); };
+  }, [room, onPromoted]);
+  return null;
 }
 
 function ParticipantsIndicator() {
