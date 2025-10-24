@@ -42,8 +42,8 @@ export function FloatingOrbs({ count = 6, className }: FloatingOrbsProps) {
             top: `${10 + Math.random() * 70}%`,
             background:
               i % 2 === 0
-                ? 'radial-gradient(circle, rgba(190,242,100,0.35) 0%, rgba(190,242,100,0) 60%)'
-                : 'radial-gradient(circle, rgba(99,102,241,0.28) 0%, rgba(99,102,241,0) 60%)',
+                ? 'radial-gradient(circle, rgba(142,95,255,0.35) 0%, rgba(142,95,255,0) 60%)'
+                : 'radial-gradient(circle, rgba(34,211,238,0.28) 0%, rgba(34,211,238,0) 60%)',
             filter: 'blur(6px)'
           }}
         />
@@ -51,4 +51,3 @@ export function FloatingOrbs({ count = 6, className }: FloatingOrbsProps) {
     </div>
   );
 }
-

@@ -1,0 +1,115 @@
+ .container {
+  position: relative;
+}
+
+.menuButton {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  background-color: #1a1a2e;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow:
+    0 0 8px rgba(138, 43, 226, 0.3),
+    0 0 16px rgba(138, 43, 226, 0.1);
+  transition: all 0.2s ease-in-out;
+  overflow: visible;
+}
+
+.menuButton:hover {
+  background-color: #252540;
+  border-color: rgba(138, 43, 226, 0.5);
+  box-shadow:
+    0 0 12px rgba(138, 43, 226, 0.5),
+    0 0 24px rgba(138, 43, 226, 0.2);
+  transform: translateY(-1px);
+}
+
+.tooltip {
+  position: absolute;
+  top: -30px;
+  right: 0;
+  background: rgba(26, 26, 46, 0.95);
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  color: #e0e0e0;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+}
+
+.menuButton:hover .tooltip,
+.menuButton:focus .tooltip {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.gridContainer {
+  position: relative;
+  width: 60%;
+  height: 60%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 20%;
+  justify-items: center;
+  align-items: center;
+  z-index: 2;
+}
+
+.gridDot {
+  width: 4px;
+  height: 4px;
+  background-color: #a78bfa;
+  border-radius: 50%;
+  box-shadow:
+    0 0 4px #a78bfa,
+    0 0 8px rgba(167, 139, 250, 0.5);
+}
+
+.gridLines {
+  position: absolute;
+  width: 70%;
+  height: 70%;
+  stroke: rgba(167, 139, 250, 0.4);
+  stroke-width: 1;
+  fill: none;
+  filter: drop-shadow(0 0 2px rgba(167, 139, 250, 0.3));
+  z-index: 1;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: #1a1a2e;
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 200px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    0 0 16px rgba(138, 43, 226, 0.2);
+  z-index: 1000;
+}
+
+.dropdownItem {
+  display: block;
+  padding: 12px 20px;
+  color: #e0e0e0;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.dropdownItem:hover {
+  background-color: rgba(138, 43, 226, 0.15);
+  color: #a78bfa;
+}

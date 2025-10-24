@@ -21,40 +21,49 @@ export async function POST(
   }
 
   const prismaAny = prisma as any;
-  const result = await prismaAny.$transaction(async (tx: any) => {
-    const existing = await tx.failPostLike.findUnique({
-      where: { userId_failPostId: { userId: sessionUser.id, failPostId } },
-    });
+  try {
+    const result = await prismaAny.$transaction(async (tx: any) => {
+      if (!tx.failPostLike || !tx.failPost) {
+        throw new Error("Fail Wall tables not available.");
+      }
 
-    if (existing) {
-      await tx.failPostLike.delete({
+      const existing = await tx.failPostLike.findUnique({
         where: { userId_failPostId: { userId: sessionUser.id, failPostId } },
+      });
+
+      if (existing) {
+        await tx.failPostLike.delete({
+          where: { userId_failPostId: { userId: sessionUser.id, failPostId } },
+        });
+        const post = await tx.failPost.update({
+          where: { id: failPostId },
+          data: { likesCount: { decrement: 1 } },
+          select: { likesCount: true, commentsCount: true },
+        });
+        return { liked: false, post };
+      }
+
+      await tx.failPostLike.create({
+        data: { userId: sessionUser.id, failPostId },
       });
       const post = await tx.failPost.update({
         where: { id: failPostId },
-        data: { likesCount: { decrement: 1 } },
+        data: { likesCount: { increment: 1 } },
         select: { likesCount: true, commentsCount: true },
       });
-      return { liked: false, post };
-    }
-
-    await tx.failPostLike.create({
-      data: { userId: sessionUser.id, failPostId },
+      return { liked: true, post };
     });
-    const post = await tx.failPost.update({
-      where: { id: failPostId },
-      data: { likesCount: { increment: 1 } },
-      select: { likesCount: true, commentsCount: true },
-    });
-    return { liked: true, post };
-  });
 
-  return NextResponse.json({
-    data: {
-      liked: result.liked,
-      likesCount: result.post.likesCount,
-      commentsCount: result.post.commentsCount,
-      engagementScore: result.post.likesCount + result.post.commentsCount * 2,
-    },
-  });
+    return NextResponse.json({
+      data: {
+        liked: result.liked,
+        likesCount: result.post.likesCount,
+        commentsCount: result.post.commentsCount,
+        engagementScore: result.post.likesCount + result.post.commentsCount * 2,
+      },
+    });
+  } catch (error) {
+    console.error("fail-post like error", error);
+    return jsonError("Fail Wall reactions are temporarily unavailable.", 503, error);
+  }
 }

@@ -17,7 +17,7 @@ export function HeroCanvas({ className }: HeroCanvasProps) {
 
     const mount = mountRef.current;
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0b1022, 0.035);
+    scene.fog = new THREE.FogExp2(0x070813, 0.035);
 
     const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 100);
     camera.position.z = 6;
@@ -47,7 +47,7 @@ export function HeroCanvas({ className }: HeroCanvasProps) {
     geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
 
     const material = new THREE.PointsMaterial({
-      color: new THREE.Color('#7c3aed'), // purple-600
+      color: new THREE.Color('#8e5fff'),
       size: 0.05,
       sizeAttenuation: true,
       transparent: true,
@@ -63,7 +63,7 @@ export function HeroCanvas({ className }: HeroCanvasProps) {
     const plane = new THREE.Mesh(
       new THREE.PlaneGeometry(30, 30),
       new THREE.MeshBasicMaterial({
-        color: new THREE.Color('#0ea5e9'), // sky-500
+        color: new THREE.Color('#22d3ee'),
         transparent: true,
         opacity: 0.06,
       })
@@ -118,4 +118,3 @@ export function HeroCanvas({ className }: HeroCanvasProps) {
 
   return <div ref={mountRef} className={className ?? 'absolute inset-0'} />;
 }
-

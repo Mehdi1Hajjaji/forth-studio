@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="forth-left-brace" x1="12" y1="8" x2="78" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0FC5FF" />
+      <stop offset="1" stop-color="#3566FF" />
+    </linearGradient>
+    <linearGradient id="forth-right-brace" x1="46" y1="8" x2="110" y2="112" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5236FF" />
+      <stop offset="1" stop-color="#AA40FF" />
+    </linearGradient>
+    <linearGradient id="forth-node" x1="44" y1="28" x2="82" y2="86" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4DD8FF" />
+      <stop offset="1" stop-color="#A256FF" />
+    </linearGradient>
+  </defs>
+  <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+    <path
+      d="M53 15c0-4.4183-3.582-8-8-8H29C18.5066 7 10 15.5066 10 26v15c0 7.2825 4.3076 13.886 10.9768 16.772L32 62c1.5118.6213 1.5118 2.7327 0 3.354L20.9768 68.228C14.3076 71.114 10 77.7175 10 85v15c0 10.4934 8.5066 19 19 19h16c4.4183 0 8-3.582 8-8v-13c0-3.5353 1.9833-6.769 5.114-8.37l9.7268-4.9134C75.8892 83.4929 78 80.0558 78 76.2105c0-3.8453-2.1108-7.2824-5.1592-8.5061L63 62.646c-3.1307-1.601-5.114-4.8346-5.114-8.3699V15z"
+      fill="url(#forth-left-brace)"
+    />
+    <path
+      d="M67 15c0-4.4183 3.582-8 8-8h16c10.4934 0 19 8.5066 19 19v15c0 7.2825-4.3076 13.886-10.9768 16.772L95 62c-1.5118.6213-1.5118 2.7327 0 3.354l12.0232 4.874C113.6924 72.114 118 78.7175 118 86v15c0 10.4934-8.5066 19-19 19H83c-4.4183 0-8-3.582-8-8v-13c0-3.5353-1.9833-6.769-5.114-8.37l-9.7268-4.9134C52.1108 83.4929 50 80.0558 50 76.2105c0-3.8453 2.1108-7.2824 5.1592-8.5061L67 62.646c3.1307-1.601 5.114-4.8346 5.114-8.3699V15z"
+      fill="url(#forth-right-brace)"
+    />
+    <g fill="url(#forth-node)" stroke="url(#forth-node)" stroke-width="2">
+      <circle cx="60" cy="46" r="8" />
+      <circle cx="78" cy="38" r="6" />
+      <circle cx="50" cy="66" r="6" />
+      <circle cx="62" cy="82" r="7" />
+      <path d="M66 78 74 66" stroke-linecap="round" />
+      <path d="M56 54 48 64" stroke-linecap="round" />
+      <path d="M64 44 76 36" stroke-linecap="round" />
+    </g>
+  </g>
+</svg>

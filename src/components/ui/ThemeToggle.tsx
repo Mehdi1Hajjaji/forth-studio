@@ -1,75 +1,74 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 
-export function ThemeToggle({ className }: { className?: string }) {
-  const { theme, setTheme } = useTheme();
+export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const { theme, resolvedTheme, setTheme } = useTheme();
 
-  if (!mounted) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  const isLight = theme === 'light';
+  if (!mounted) {
+    return <div className="h-9 w-9" />;
+  }
 
-  // Visual rules required:
-  // - In light mode: white background, black text, label "Dark"
-  // - In dark mode:  black background, white text, label "Light"
-  const base =
-    'inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40';
-  const visual =
-    'bg-white text-black border-black/10 hover:bg-white dark:bg-black dark:text-white dark:border-white/20 dark:hover:bg-black';
-
-  const label = isLight ? 'Dark' : 'Light';
+  const isDark = (resolvedTheme ?? theme) === 'dark';
+  const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
 
   return (
     <button
-      type="button"
-      aria-label="Toggle theme"
-      aria-pressed={!isLight}
-      title={isLight ? 'Switch to Dark mode' : 'Switch to Light mode'}
-      onClick={() => setTheme(isLight ? 'dark' : 'light')}
-      className={className ? `${base} ${visual} ${className}` : `${base} ${visual}`}
+      onClick={toggleTheme}
+      className="flex h-9 w-9 items-center justify-center rounded-full border border-accent/50 bg-transparent text-accent transition-colors hover:bg-accent/10"
+      aria-label={isDark ? 'Switch to light theme' : 'Switch to dark theme'}
+      aria-pressed={isDark ? 'false' : 'true'}
+      title={isDark ? 'Light mode' : 'Dark mode'}
     >
-      {isLight ? (
-        <MoonIcon className="h-4 w-4" />
-      ) : (
-        <SunIcon className="h-4 w-4" />
-      )}
-      <span className="font-bold">{label}</span>
+      {isDark ? <SunIcon /> : <MoonIcon />}
     </button>
   );
 }
 
-function SunIcon({ className }: { className?: string }) {
+function SunIcon() {
   return (
     <svg
-      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
-      <circle cx="12" cy="12" r="4" />
-      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
     </svg>
   );
 }
 
-function MoonIcon({ className }: { className?: string }) {
+function MoonIcon() {
   return (
     <svg
-      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      aria-hidden="true"
     >
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
     </svg>

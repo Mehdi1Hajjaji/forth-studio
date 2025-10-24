@@ -42,41 +42,46 @@ export async function GET(request: NextRequest) {
   }
 
   const prismaAny = prisma as any;
-  const posts = (await prismaAny.failPost.findMany({
-    include,
-    orderBy,
-    take: limit,
-  })) as Array<{
-    id: string;
-    userId: string;
-    projectAttempt: string;
-    failureReason: string;
-    lessonLearned: string;
-    likesCount: number;
-    commentsCount: number;
-    createdAt: Date;
-    updatedAt: Date;
-    author: {
+  try {
+    const posts = (await prismaAny.failPost.findMany({
+      include,
+      orderBy,
+      take: limit,
+    })) as Array<{
       id: string;
-      username: string | null;
-      name: string | null;
-      avatarUrl: string | null;
-      resilienceBadgeCount?: number | null;
-      resilienceBadgeEarnedAt?: Date | null;
-    };
-    likes?: { userId: string }[];
-  }>;
+      userId: string;
+      projectAttempt: string;
+      failureReason: string;
+      lessonLearned: string;
+      likesCount: number;
+      commentsCount: number;
+      createdAt: Date;
+      updatedAt: Date;
+      author: {
+        id: string;
+        username: string | null;
+        name: string | null;
+        avatarUrl: string | null;
+        resilienceBadgeCount?: number | null;
+        resilienceBadgeEarnedAt?: Date | null;
+      };
+      likes?: { userId: string }[];
+    }>;
 
-  const data = posts.map((post) => {
-    const { likes, ...rest } = post as typeof post & { likes?: { userId: string }[] };
-    return {
-      ...rest,
-      likedByViewer: Array.isArray(likes) ? likes.length > 0 : false,
-      engagementScore: rest.likesCount + rest.commentsCount * 2,
-    };
-  });
+    const data = posts.map((post) => {
+      const { likes, ...rest } = post as typeof post & { likes?: { userId: string }[] };
+      return {
+        ...rest,
+        likedByViewer: Array.isArray(likes) ? likes.length > 0 : false,
+        engagementScore: rest.likesCount + rest.commentsCount * 2,
+      };
+    });
 
-  return NextResponse.json({ data });
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error("fail-posts GET error", error);
+    return NextResponse.json({ data: [] });
+  }
 }
 
 export async function POST(request: Request) {
@@ -93,53 +98,58 @@ export async function POST(request: Request) {
   }
 
   const prismaAny = prisma as any;
-  const post = (await prismaAny.failPost.create({
-    data: {
-      userId: sessionUser.id,
-      projectAttempt: input.projectAttempt,
-      failureReason: input.failureReason,
-      lessonLearned: input.lessonLearned,
-    },
-    include: {
-      author: {
-        select: {
-          id: true,
-          username: true,
-          name: true,
-          avatarUrl: true,
-          resilienceBadgeCount: true,
-          resilienceBadgeEarnedAt: true,
+  try {
+    const post = (await prismaAny.failPost.create({
+      data: {
+        userId: sessionUser.id,
+        projectAttempt: input.projectAttempt,
+        failureReason: input.failureReason,
+        lessonLearned: input.lessonLearned,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            avatarUrl: true,
+            resilienceBadgeCount: true,
+            resilienceBadgeEarnedAt: true,
+          },
         },
       },
-    },
-  })) as {
-    id: string;
-    userId: string;
-    projectAttempt: string;
-    failureReason: string;
-    lessonLearned: string;
-    likesCount: number;
-    commentsCount: number;
-    createdAt: Date;
-    updatedAt: Date;
-    author: {
+    })) as {
       id: string;
-      username: string | null;
-      name: string | null;
-      avatarUrl: string | null;
-      resilienceBadgeCount?: number | null;
-      resilienceBadgeEarnedAt?: Date | null;
+      userId: string;
+      projectAttempt: string;
+      failureReason: string;
+      lessonLearned: string;
+      likesCount: number;
+      commentsCount: number;
+      createdAt: Date;
+      updatedAt: Date;
+      author: {
+        id: string;
+        username: string | null;
+        name: string | null;
+        avatarUrl: string | null;
+        resilienceBadgeCount?: number | null;
+        resilienceBadgeEarnedAt?: Date | null;
+      };
     };
-  };
 
-  return NextResponse.json(
-    {
-      data: {
-        ...post,
-        likedByViewer: false,
-        engagementScore: post.likesCount + post.commentsCount * 2,
+    return NextResponse.json(
+      {
+        data: {
+          ...post,
+          likedByViewer: false,
+          engagementScore: post.likesCount + post.commentsCount * 2,
+        },
       },
-    },
-    { status: 201 },
-  );
+      { status: 201 },
+    );
+  } catch (error) {
+    console.error("fail-posts POST error", error);
+    return jsonError("Fail Wall is not ready yet. Try again later.", 503, error);
+  }
 }

@@ -8,6 +8,7 @@ const navItems = [
   { label: "Publish story", href: "/stories/new" },
   { label: "Publish project", href: "/projects/new" },
   { label: "Fail Wall", href: "/fail-wall" },
+  { label: "Code & Cry", href: "/code-cry" },
   { label: "Account settings", href: "/settings" },
 ];
 
@@ -29,35 +30,37 @@ export function DashboardShell({
   hero,
 }: DashboardShellProps) {
   return (
-    <div className="min-h-screen bg-background text-white">
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-8 px-6 pb-16 pt-12 lg:px-8">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-10 px-6 pb-20 pt-12 lg:px-8">
         {hero ? hero : null}
-        <nav className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/5 bg-surface/70 px-6 py-4 backdrop-blur">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-accent">
+        <nav className="glass-panel flex flex-wrap items-center justify-between gap-4 rounded-[28px] px-6 py-5 shadow-card-soft">
+          <div className="space-y-1.5">
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-accent">
               forth.studio
             </p>
-            <h1 className="text-xl font-semibold text-white">{title}</h1>
-            <p className="text-sm text-white/60">{description}</p>
+            <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+            <p className="text-sm text-muted">{description}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <ThemeToggle />
+            <div className="order-last w-full justify-center md:order-none md:w-auto">
+              <ThemeToggle />
+            </div>
             {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
           </div>
         </nav>
         <div className="grid gap-8 lg:grid-cols-[240px,minmax(0,1fr)]">
-          <aside className="rounded-2xl border border-white/5 bg-surface/70 p-4">
-            <ul className="space-y-2 text-sm font-medium text-white/70">
+          <aside className="surface-card rounded-[28px] p-4">
+            <ul className="space-y-2 text-sm font-medium text-muted">
               {navItems.map((item) => {
                 const isActive = item.href === activePath;
                 return (
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      className={`block rounded-xl px-4 py-2 transition ${
+                      className={`block rounded-2xl px-4 py-2 transition ${
                         isActive
-                          ? "bg-accent text-accent-foreground"
-                          : "hover:bg-white/5 hover:text-white"
+                          ? "bg-accent text-accent-foreground shadow-card"
+                          : "hover:bg-surface-muted/70 hover:text-foreground"
                       }`}
                     >
                       {item.label}
@@ -67,7 +70,7 @@ export function DashboardShell({
               })}
             </ul>
           </aside>
-          <main className="space-y-6">{children}</main>
+          <main className="space-y-8">{children}</main>
         </div>
       </div>
     </div>

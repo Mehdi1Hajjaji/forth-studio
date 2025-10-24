@@ -87,6 +87,14 @@ model User {
   
   accounts Account[]
   sessions Session[]
+
+  // Code & Cry relations
+  codeCryHostedSessions CodeCrySession[] @relation("CodeCryHost")
+  codeCryChatMessages   ChatMessage[]    @relation("ChatMessageSender")
+  helpRequests          HelpRequest[]    @relation("HelpRequester")
+  chatMessageUpvotes    ChatMessageUpvote[]
+  codeCryBans           CodeCryBan[]
+  codeCryMutes          CodeCryMute[]
 }
 
 
@@ -389,4 +397,121 @@ model ProjectTag {
   tag     Tag     @relation(fields: [tagId], references: [id])
 
   @@id([projectId, tagId])
+}
+
+/// Code & Cry live coding sessions — weekly live co-coding with chat and help requests.
+model CodeCrySession {
+  id            String   @id @default(cuid())
+  hostId        String
+  /// Unique LiveKit room name used for presenters/viewers to join
+  roomName      String   @unique
+  title         String
+  description   String?
+  isAnonymous   Boolean  @default(false)
+  /// Optional scheduled time; used to show upcoming sessions
+  scheduledFor  DateTime?
+  startedAt     DateTime?
+  endedAt       DateTime?
+  /// Optional external stream or public watch URL (e.g., recording)
+  streamUrl     String?
+  /// Optional archived recording URL for replays/highlights
+  recordingUrl  String?
+  /// Chat and room controls
+  isChatClosed  Boolean  @default(false)
+  isViewOnly    Boolean  @default(false)
+  isStuck       Boolean  @default(false)
+  /// Simple code sharing state (MVP)
+  codeContent   String?  @db.Text
+  codeLanguage  String?  @default("plaintext")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  host          User     @relation("CodeCryHost", fields: [hostId], references: [id])
+  chatMessages  ChatMessage[]
+  helpRequests  HelpRequest[]
+  bans          CodeCryBan[]
+  mutes         CodeCryMute[]
+
+  @@index([hostId])
+  @@index([scheduledFor])
+  @@index([startedAt])
+  @@index([endedAt])
+}
+
+model ChatMessage {
+  id          String   @id @default(cuid())
+  sessionId   String
+  senderId    String?
+  isAnonymous Boolean  @default(false)
+  senderName  String?
+  message     String   @db.Text
+  sentAt      DateTime @default(now())
+  upvotes     Int      @default(0)
+
+  session     CodeCrySession @relation(fields: [sessionId], references: [id])
+  sender      User?          @relation("ChatMessageSender", fields: [senderId], references: [id])
+  votes       ChatMessageUpvote[]
+
+  @@index([sessionId])
+  @@index([senderId])
+}
+
+model ChatMessageUpvote {
+  userId     String
+  messageId  String
+  createdAt  DateTime @default(now())
+
+  user    User        @relation(fields: [userId], references: [id])
+  message ChatMessage @relation(fields: [messageId], references: [id])
+
+  @@id([userId, messageId])
+}
+
+enum HelpRequestStatus {
+  OPEN
+  RESOLVED
+}
+
+model HelpRequest {
+  id           String            @id @default(cuid())
+  sessionId    String
+  requesterId  String?
+  isAnonymous  Boolean           @default(false)
+  requesterName String?
+  topic        String
+  details      String?
+  status       HelpRequestStatus @default(OPEN)
+  createdAt    DateTime          @default(now())
+
+  session      CodeCrySession @relation(fields: [sessionId], references: [id])
+  requester    User?          @relation("HelpRequester", fields: [requesterId], references: [id])
+
+  @@index([sessionId])
+  @@index([requesterId])
+}
+
+model CodeCryBan {
+  sessionId String
+  userId    String
+  reason    String?
+  createdAt DateTime @default(now())
+  createdBy String
+
+  session CodeCrySession @relation(fields: [sessionId], references: [id])
+  user    User           @relation(fields: [userId], references: [id])
+
+  @@id([sessionId, userId])
+}
+
+model CodeCryMute {
+  sessionId String
+  userId    String
+  reason    String?
+  createdAt DateTime @default(now())
+  createdBy String
+
+  session CodeCrySession @relation(fields: [sessionId], references: [id])
+  user    User           @relation(fields: [userId], references: [id])
+
+  @@id([sessionId, userId])
 }

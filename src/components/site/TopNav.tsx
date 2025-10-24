@@ -1,44 +1,43 @@
+import Image from "next/image";
 import Link from "next/link";
 import { AuthButtons } from "./AuthButtons";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import ServicesMenuButton from "./ServicesMenuButton";
 
 const navLinks = [
   { label: "Algorithms", href: "/algorithms" },
   { label: "Stories", href: "/stories" },
-  { label: "Fail Wall", href: "/fail-wall" },
   { label: "Best Solutions", href: "/best-solutions" },
 ];
 
 export function TopNav() {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/5 bg-surface/60 px-6 py-4 backdrop-blur">
-      <Link href="/" className="flex items-center gap-3">
+    <header className="relative z-20 mx-auto flex w-full max-w-[1180px] items-center justify-between px-8 py-10">
+      <Link
+        href="/"
+        className="flex items-center gap-4 transition hover:opacity-90"
+        aria-label="forth.studio home"
+      >
         <LogoMark />
-        <span className="text-lg font-semibold tracking-tight text-white">
-          forth<span className="text-accent">.studio</span>
-        </span>
       </Link>
 
-      <nav className="flex flex-1 items-center justify-center gap-6 text-sm font-medium text-white/70 max-md:order-last">
+      <nav className="hidden items-center gap-6 text-[0.95rem] font-medium tracking-[0.015em] lg:flex">
         {navLinks.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className="transition-colors hover:text-white"
-          >
+          <Link key={link.href} href={link.href} className="nav-link">
             {link.label}
           </Link>
         ))}
+        <ServicesMenuButton />
       </nav>
 
-      <div className="flex items-center gap-4">
-        <div className="hidden items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/60 lg:flex">
-          <SearchIcon className="h-4 w-4 text-white/50" />
-          <span>Search</span>
-          <kbd className="rounded bg-surface-muted/60 px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-white/40">
-            Ctrl K
-          </kbd>
-        </div>
+      <div className="flex items-center gap-5">
+        <Link
+          href="/best-solutions"
+          className="hidden items-center gap-2 rounded-full border border-accent/50 bg-transparent px-5 py-2 text-sm font-semibold text-white/85 transition hover:border-accent/70 hover:text-white lg:flex"
+        >
+          <SearchIcon className="h-4 w-4 text-accent" />
+          Best Solutions
+        </Link>
         <ThemeToggle />
         <AuthButtons />
       </div>
@@ -48,8 +47,15 @@ export function TopNav() {
 
 export function LogoMark() {
   return (
-    <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 font-semibold text-white shadow-lg shadow-indigo-500/40">
-      {"{}"}
+    <span className="inline-flex items-center justify-center">
+      <Image
+        src="/assets/icons/logo.png"
+        alt="forth.studio logo"
+        width={144}
+        height={48}
+        className="h-12 w-auto"
+        priority
+      />
     </span>
   );
 }
@@ -68,6 +74,23 @@ function SearchIcon({ className }: { className?: string }) {
     >
       <circle cx="11" cy="11" r="7" />
       <path d="m20 20-3.5-3.5" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 4.5 6 7.5l3-3" />
     </svg>
   );
 }

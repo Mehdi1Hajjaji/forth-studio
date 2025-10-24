@@ -2,15 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Theme tokens via CSS variables so we can toggle dark/light */
+/* Theme tokens updated to match the refreshed forth.studio identity */
 :root {
   /* default to dark theme values */
-  --background: 5 11 26; /* #050B1A */
-  --surface: 17 24 39; /* #111827 */
-  --surface-muted: 31 41 55; /* #1F2937 */
-  /* neon-lime brand accent */
-  --accent: 190 242 100; /* lime-300 */
-  --accent-foreground: 15 23 42; /* slate-900 for contrast */
+  --background: 0 0 0; /* #000000 */
+  --foreground: 244 245 255; /* #F4F5FF */
+  --muted: 156 163 194; /* #9CA3C2 */
+  --surface: 12 14 26; /* #0C0E1A */
+  --surface-muted: 20 22 34; /* #141622 */
+  --border: 54 58 78; /* #363A4E */
+  --accent: 155 92 255; /* #9B5CFF */
+  --accent-foreground: 255 255 255;
+  --secondary: 69 226 255; /* Bright cyan */
+  --secondary-foreground: 6 18 28;
+  --glow-magenta: 155 92 255;
+  --glow-cyan: 69 226 255;
+  --glass: rgba(24, 26, 45, 0.78);
 
   color-scheme: dark;
   font-synthesis: none;
@@ -22,48 +29,176 @@
 
 /* Light theme overrides */
 .light {
-  --background: 247 250 253; /* near-white */
+  --background: 245 245 250; /* #F5F5FA */
+  --foreground: 24 24 40; /* #181828 */
+  --muted: 109 101 130; /* Muted plum */
   --surface: 255 255 255;
-  --surface-muted: 240 244 248;
-  --accent: 132 204 22; /* lime-600 for accessibility in light */
-  --accent-foreground: 15 23 42;
+  --surface-muted: 242 235 226;
+  --border: 208 197 228;
+  --accent: 124 58 237; /* Radiant violet */
+  --accent-foreground: 255 255 255;
+  --secondary: 14 165 233;
+  --secondary-foreground: 7 22 37;
+  --glow-magenta: 165 92 255;
+  --glow-cyan: 14 165 233;
+  --glass: rgba(255, 255, 255, 0.88);
   color-scheme: light;
 }
 
 body {
-  @apply bg-background text-white;
-  background-image: radial-gradient(circle at 20% 20%, rgba(190, 242, 100, 0.18), transparent 35%),
-    radial-gradient(circle at 80% 0%, rgba(99, 102, 241, 0.10), transparent 45%),
-    radial-gradient(circle at 50% 100%, rgba(14, 165, 233, 0.14), transparent 55%);
+  @apply bg-background;
+  color: rgb(var(--foreground));
   background-color: rgb(var(--background));
+  background-attachment: fixed;
   min-height: 100vh;
+  position: relative;
 }
 
+.dark body,
 .light body {
-  @apply text-black;
-  background-image: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.12), transparent 35%),
-    radial-gradient(circle at 80% 0%, rgba(139, 92, 246, 0.10), transparent 45%),
-    radial-gradient(circle at 50% 100%, rgba(14, 165, 233, 0.12), transparent 55%);
+  color: rgb(var(--foreground));
+  background-image: none;
+}
+
+.dark body::before,
+.dark body::after,
+body::before,
+body::after {
+  content: none;
 }
 
 /* pragmatic light-mode overrides for hardcoded white text utilities */
-.light .text-white { color: rgb(17 24 39) !important; }
-.light .text-white\/70 { color: rgb(17 24 39 / 0.70) !important; }
-.light .text-white\/65 { color: rgb(17 24 39 / 0.65) !important; }
-.light .text-white\/60 { color: rgb(17 24 39 / 0.60) !important; }
-.light .text-white\/50 { color: rgb(17 24 39 / 0.50) !important; }
-.light .text-white\/40 { color: rgb(17 24 39 / 0.40) !important; }
+.light .text-white { color: rgb(var(--foreground)) !important; }
+.light .text-white\/80 { color: rgb(var(--foreground) / 0.8) !important; }
+.light .text-white\/70 { color: rgb(var(--foreground) / 0.7) !important; }
+.light .text-white\/65 { color: rgb(var(--foreground) / 0.65) !important; }
+.light .text-white\/60 { color: rgb(var(--foreground) / 0.6) !important; }
+.light .text-white\/50 { color: rgb(var(--foreground) / 0.5) !important; }
+.light .text-white\/40 { color: rgb(var(--foreground) / 0.4) !important; }
+.light .bg-white\/5 { background-color: rgba(255, 255, 255, 0.78) !important; }
+.light .bg-white\/10 { background-color: rgba(255, 255, 255, 0.65) !important; }
+.light .bg-white\/\[0\.04\] { background-color: rgba(255, 255, 255, 0.7) !important; }
+.light .border-white\/5,
+.light .border-white\/10,
+.light .border-white\/15,
+.light .border-white\/20 { border-color: rgb(var(--border) / 0.55) !important; }
+.light .ring-white\/20 { --tw-ring-color: rgb(var(--accent) / 0.25) !important; }
+.light .bg-black\/20 { background-color: rgba(0, 0, 0, 0.08) !important; }
+.light .bg-black\/30 { background-color: rgba(0, 0, 0, 0.12) !important; }
 
 a {
-  @apply text-accent transition-colors duration-200 hover:text-white;
+  color: rgb(var(--accent));
+  transition: color 0.25s ease, background 0.25s ease, border 0.25s ease,
+    box-shadow 0.25s ease, transform 0.25s ease;
 }
 
-.light a {
-  @apply hover:text-black;
+a:hover {
+  color: rgb(var(--accent-foreground));
+}
+
+.light a:hover {
+  color: rgb(var(--foreground));
+}
+
+.pill-button {
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  padding: 0.65rem 1.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.pill-button--primary {
+  color: rgb(var(--accent-foreground));
+  background: linear-gradient(135deg, rgba(155, 92, 255, 1) 0%, rgba(123, 74, 255, 1) 55%, rgba(69, 226, 255, 0.92) 100%);
+  box-shadow: 0 16px 44px -20px rgba(123, 74, 255, 0.95);
+}
+
+.pill-button--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 52px -20px rgba(136, 82, 255, 1);
+}
+
+.pill-button--ghost {
+  color: rgb(var(--foreground));
+  background-color: transparent;
+  border: 1.5px solid rgba(155, 92, 255, 0.55);
+}
+
+.pill-button--ghost:hover {
+  border-color: rgba(155, 92, 255, 0.9);
+  color: rgba(155, 92, 255, 1);
+}
+
+.glass-panel {
+  background-color: var(--glass);
+  border: 1px solid rgb(var(--border) / 0.55);
+  backdrop-filter: blur(18px);
+}
+
+/* Lock navigation links (no hover color/underline) */
+.nav-link {
+  color: #b586f7;
+  font-weight: 500;
+  text-decoration: none;
+}
+.nav-link:hover,
+.nav-link:active,
+.nav-link:focus {
+  color: #b586f7;
+  text-decoration: none;
+}
+
+.surface-card {
+  background-color: rgb(var(--surface) / 0.88);
+  border: 1px solid rgb(var(--border) / 0.55);
+}
+
+.surface-card--muted {
+  background-color: rgb(var(--surface-muted) / 0.9);
+}
+
+.light .glass-panel {
+  border-color: rgb(var(--border) / 0.6);
+}
+
+.light .surface-card {
+  background-color: rgb(var(--surface) / 0.9);
+  border-color: rgb(var(--border) / 0.7);
 }
 
 @layer components {
   .auth-input {
-    @apply w-full rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/40;
+    @apply w-full rounded-2xl border px-4 py-3 text-sm shadow-sm transition;
+    color: rgb(var(--foreground));
+    background-color: rgb(var(--surface-muted) / 0.72);
+    border-color: rgb(var(--border) / 0.6);
+  }
+
+  .auth-input::placeholder {
+    color: rgb(var(--muted) / 0.65);
+  }
+
+  .auth-input:focus {
+    border-color: rgb(var(--accent) / 0.8);
+    outline: none;
+    box-shadow: 0 0 0 4px rgb(var(--accent) / 0.18);
+  }
+}
+
+/* Utilities to keep particles consistent and artifact-free */
+@layer utilities {
+  .particle {
+    filter: blur(1.5px) drop-shadow(0 0 16px rgba(135, 95, 255, 0.45));
+    opacity: 0.55;
+    object-fit: contain;
+  }
+
+  .light .particle {
+    opacity: 0.3;
+    filter: blur(2px) drop-shadow(0 0 12px rgba(135, 95, 255, 0.25));
   }
 }

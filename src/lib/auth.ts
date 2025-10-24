@@ -118,3 +118,12 @@ export async function requireUser() {
   }
   return user;
 }
+
+export async function requireAdmin() {
+  const user = await requireUser();
+  const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { role: true } });
+  if (dbUser?.role !== 'ADMIN') {
+    throw new Error('Forbidden');
+  }
+  return user;
+}

@@ -29,43 +29,52 @@ export async function POST(
   }
 
   const prismaAny = prisma as any;
-  const comment = await prismaAny.$transaction(async (tx: any) => {
-    const created = await tx.failPostComment.create({
-      data: {
-        failPostId,
-        authorId: sessionUser.id,
-        body: input.body,
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            username: true,
-            name: true,
-            avatarUrl: true,
+  try {
+    const comment = await prismaAny.$transaction(async (tx: any) => {
+      if (!tx.failPostComment || !tx.failPost) {
+        throw new Error("Fail Wall tables not available.");
+      }
+
+      const created = await tx.failPostComment.create({
+        data: {
+          failPostId,
+          authorId: sessionUser.id,
+          body: input.body,
+        },
+        include: {
+          author: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              avatarUrl: true,
+            },
           },
         },
+      });
+
+      const post = await tx.failPost.update({
+        where: { id: failPostId },
+        data: { commentsCount: { increment: 1 } },
+        select: { likesCount: true, commentsCount: true },
+      });
+
+      return {
+        created,
+        engagementScore: post.likesCount + post.commentsCount * 2,
+        commentsCount: post.commentsCount,
+      };
+    });
+
+    return NextResponse.json({
+      data: {
+        comment: comment.created,
+        commentsCount: comment.commentsCount,
+        engagementScore: comment.engagementScore,
       },
     });
-
-    const post = await tx.failPost.update({
-      where: { id: failPostId },
-      data: { commentsCount: { increment: 1 } },
-      select: { likesCount: true, commentsCount: true },
-    });
-
-    return {
-      created,
-      engagementScore: post.likesCount + post.commentsCount * 2,
-      commentsCount: post.commentsCount,
-    };
-  });
-
-  return NextResponse.json({
-    data: {
-      comment: comment.created,
-      commentsCount: comment.commentsCount,
-      engagementScore: comment.engagementScore,
-    },
-  });
+  } catch (error) {
+    console.error("fail-post comment error", error);
+    return jsonError("Fail Wall commenting is temporarily unavailable.", 503, error);
+  }
 }

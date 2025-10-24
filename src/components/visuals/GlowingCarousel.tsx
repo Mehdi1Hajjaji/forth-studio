@@ -36,10 +36,12 @@ export function GlowingCarousel({ items }: { items: Item[] }) {
   }, []);
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-surface/70 p-6">
+    <section className="relative overflow-hidden rounded-[32px] border border-border/60 bg-surface/90 p-6 shadow-card-soft">
       <header className="mb-4 flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Student Highlights</h3>
-        <span className="rounded-full bg-accent/15 px-3 py-1 text-xs font-semibold text-accent">Live</span>
+        <h3 className="text-lg font-semibold text-foreground">Student Highlights</h3>
+        <span className="rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-semibold text-accent">
+          Live
+        </span>
       </header>
       <div className="relative">
         <div className="pointer-events-none absolute left-0 top-0 h-full w-24 bg-gradient-to-r from-background to-transparent" />
@@ -49,22 +51,19 @@ export function GlowingCarousel({ items }: { items: Item[] }) {
             <article
               key={i}
               data-card
-              className={
-                `relative w-72 shrink-0 rounded-2xl border p-5 text-white shadow-card ` +
-                (i === 0
-                  ? 'border-lime-300/60 bg-lime-300/15'
-                  : 'border-white/10 bg-white/5')
-              }
+              className={`relative w-72 shrink-0 rounded-[28px] border border-border/60 p-5 text-foreground shadow-card-soft transition-colors ${
+                i === 0 ? 'bg-accent/12' : 'bg-surface/85'
+              }`}
             >
-              <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-lime-300/20 via-indigo-500/10 to-blue-500/10 blur-2xl" />
+              <div className="absolute -inset-px rounded-[28px] bg-gradient-to-br from-accent/20 via-transparent to-secondary/20 opacity-70 blur-2xl" />
               <div className="relative z-10">
                 {item.badge ? (
-                  <span className="mb-2 inline-flex rounded-full bg-accent/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest text-accent">
+                  <span className="mb-2 inline-flex rounded-full border border-accent/40 bg-accent/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.32em] text-accent">
                     {item.badge}
                   </span>
                 ) : null}
                 <h4 className="text-lg font-semibold">{item.title}</h4>
-                <p className="mt-1 text-sm text-white/70">{item.description}</p>
+                <p className="mt-1 text-sm text-muted">{item.description}</p>
               </div>
             </article>
           ))}

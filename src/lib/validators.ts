@@ -176,3 +176,44 @@ export function parseFailPostInput(payload: unknown): FailPostInput {
 export function parseFailPostComment(payload: unknown): FailPostCommentInput {
   return failPostCommentSchema.parse(payload);
 }
+
+// ============================
+// Code & Cry feature validators
+// ============================
+export const codeCrySessionCreateSchema = z.object({
+  title: z.string().trim().min(3, 'Title is too short.').max(120),
+  description: z.string().trim().max(2000).optional(),
+  isAnonymous: z.boolean().optional(),
+  scheduledFor: z.coerce.date().optional(),
+});
+
+export type CodeCrySessionCreate = z.infer<typeof codeCrySessionCreateSchema>;
+
+export const chatMessageInputSchema = z.object({
+  message: z.string().trim().min(1, 'Message cannot be empty.').max(2000),
+  isAnonymous: z.boolean().optional(),
+  senderName: z.string().trim().min(2).max(80).optional(),
+});
+
+export type ChatMessageInput = z.infer<typeof chatMessageInputSchema>;
+
+export const helpRequestInputSchema = z.object({
+  topic: z.string().trim().min(3, 'Topic is too short.').max(140),
+  details: z.string().trim().max(2000).optional(),
+  isAnonymous: z.boolean().optional(),
+  requesterName: z.string().trim().min(2).max(80).optional(),
+});
+
+export type HelpRequestInput = z.infer<typeof helpRequestInputSchema>;
+
+export function parseCodeCrySessionCreate(payload: unknown): CodeCrySessionCreate {
+  return codeCrySessionCreateSchema.parse(payload);
+}
+
+export function parseChatMessageInput(payload: unknown): ChatMessageInput {
+  return chatMessageInputSchema.parse(payload);
+}
+
+export function parseHelpRequestInput(payload: unknown): HelpRequestInput {
+  return helpRequestInputSchema.parse(payload);
+}

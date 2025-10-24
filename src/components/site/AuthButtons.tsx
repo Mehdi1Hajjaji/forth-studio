@@ -30,9 +30,7 @@ export function AuthButtons({ className }: AuthButtonsProps) {
   }
 
   const loading = status === 'loading' || isProcessing;
-
-  const containerClass =
-    className ?? 'flex items-center gap-3 text-sm font-medium';
+  const containerClass = className ?? 'flex items-center gap-3 text-sm font-medium';
 
   if (status === 'authenticated' && session?.user) {
     return (
@@ -44,9 +42,9 @@ export function AuthButtons({ className }: AuthButtonsProps) {
           type="button"
           onClick={handleSignOut}
           disabled={loading}
-          className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-white/80 transition hover:border-accent hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="pill-button pill-button--ghost text-xs disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? 'Signing out…' : 'Sign out'}
+          {loading ? 'Signing out.' : 'Sign out'}
         </button>
       </div>
     );
@@ -58,9 +56,9 @@ export function AuthButtons({ className }: AuthButtonsProps) {
         type="button"
         onClick={handleSignIn}
         disabled={loading}
-        className="rounded-full border border-accent/40 px-4 py-2 text-sm font-medium text-accent transition hover:border-accent hover:bg-accent/10 disabled:cursor-not-allowed disabled:opacity-60"
+        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-[#b586f7] via-[#3acdf2] to-[#D8B4FE] px-6 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {loading ? 'Loading…' : 'Sign in'}
+        {loading ? 'Loading.' : 'Sign in'}
       </button>
     </div>
   );
