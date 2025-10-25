@@ -7,6 +7,7 @@ import {
   fetchStoryFilterOptions,
   fetchStorySummaries,
 } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Stories - forth.studio",
@@ -19,6 +20,7 @@ type StoriesPageProps = {
 };
 
 export default async function StoriesPage({ searchParams }: StoriesPageProps) {
+  const user = await getCurrentUser();
   const queryParam = searchParams?.q;
   const universityParam = searchParams?.university;
   const tagsParam = searchParams?.tag;
@@ -50,6 +52,9 @@ export default async function StoriesPage({ searchParams }: StoriesPageProps) {
   ]);
 
   const featuredSlug = stories[0]?.slug;
+  const ctaHref = user
+    ? "/stories/new"
+    : `/auth/sign-in?callbackUrl=${encodeURIComponent("/stories/new")}`;
 
   return (
     <PageWrapper>
@@ -59,7 +64,7 @@ export default async function StoriesPage({ searchParams }: StoriesPageProps) {
         description="Students share how they navigated internships, landed their first roles, and shipped ambitious projects with their classmates. Filter by university or theme to find inspiration that speaks your language."
         actions={
           <Link
-            href="/auth/sign-in"
+            href={ctaHref}
             className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition hover:-translate-y-0.5 hover:bg-indigo-500"
           >
             Share my story

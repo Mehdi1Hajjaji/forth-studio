@@ -28,6 +28,10 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   secret: ensureSecret(),
+  // Warn in production if NEXTAUTH_URL is not set (can cause callback issues)
+  ...(process.env.NODE_ENV === "production" && !process.env.NEXTAUTH_URL
+    ? { events: { signIn: async () => console.warn("Warning: NEXTAUTH_URL is not set in production. Set it to your deployed URL.") } }
+    : {}),
   pages: {
     signIn: "/auth/sign-in",
   },
@@ -86,6 +90,7 @@ export const authOptions: NextAuthOptions = {
                 username: true,
                 email: true,
                 avatarUrl: true,
+                role: true,
               },
             })
           : null);
@@ -94,7 +99,10 @@ export const authOptions: NextAuthOptions = {
         session.user = {
           ...session.user,
           id: resolvedUser.id,
-        } as DefaultSession["user"] & { id: string };
+          // Expose username to client for profile links
+          username: (resolvedUser as any).username,
+          role: (resolvedUser as any).role,
+        } as DefaultSession["user"] & { id: string; username?: string; role?: string };
       }
 
       return session;

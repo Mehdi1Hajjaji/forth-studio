@@ -184,6 +184,14 @@ export default async function DashboardPage() {
             Quick actions
           </p>
           <div className="space-y-3 text-sm text-muted">
+            {viewer && (viewer as any).username ? (
+              <Link
+                href={`/profile/${(viewer as any).username}`}
+                className="block rounded-2xl border border-border/45 bg-surface/80 px-4 py-3 font-semibold text-foreground transition hover:border-accent/40 hover:text-accent"
+              >
+                View my galaxy profile
+              </Link>
+            ) : null}
             <Link
               href="/stories/new"
               className="block rounded-2xl border border-border/45 bg-surface/80 px-4 py-3 font-semibold text-foreground transition hover:border-accent/40 hover:text-accent"

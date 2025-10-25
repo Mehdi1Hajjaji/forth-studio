@@ -7,6 +7,8 @@ type RoleOption = 'student' | 'mentor' | 'investor' | 'admin';
 type ProfileFormProps = {
   initialRole: RoleOption;
   initialUniversityId: string | null;
+  initialPronouns: string;
+  initialBio: string;
   universities: { id: string; name: string }[];
 };
 
@@ -16,10 +18,12 @@ const roleOptions: { value: RoleOption; label: string }[] = [
   { value: 'investor', label: 'Investor' },
 ];
 
-export default function AccountProfileForm({ initialRole, initialUniversityId, universities }: ProfileFormProps) {
+export default function AccountProfileForm({ initialRole, initialUniversityId, initialPronouns, initialBio, universities }: ProfileFormProps) {
   const canEditRole = initialRole !== 'admin';
   const [role, setRole] = useState<RoleOption>(canEditRole ? initialRole : 'student');
   const [universityId, setUniversityId] = useState<string | 'none'>(initialUniversityId ?? 'none');
+  const [pronouns, setPronouns] = useState<string>(initialPronouns ?? '');
+  const [bio, setBio] = useState<string>(initialBio ?? '');
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [message, setMessage] = useState<string | null>(null);
 
@@ -35,6 +39,8 @@ export default function AccountProfileForm({ initialRole, initialUniversityId, u
       if (canEditRole) {
         payload.role = role;
       }
+      if (typeof pronouns === 'string') payload.pronouns = pronouns.trim().slice(0, 40) || null;
+      if (typeof bio === 'string') payload.bio = bio.trim().slice(0, 280) || null;
 
       const res = await fetch('/api/account/profile', {
         method: 'PATCH',
@@ -92,21 +98,47 @@ export default function AccountProfileForm({ initialRole, initialUniversityId, u
           )}
         </div>
 
-        <div className="space-y-2">
-          <label htmlFor="university" className="text-sm font-medium text-white/70">University</label>
-          <select
-            id="university"
-            className="auth-input"
-            value={universityId}
-            onChange={(e) => setUniversityId(e.target.value as typeof universityId)}
-          >
-            <option value="none">No university selected</option>
-            {universities.map((uni) => (
-              <option key={uni.id} value={uni.id}>
-                {uni.name}
-              </option>
-            ))}
-          </select>
+      <div className="space-y-2">
+        <label htmlFor="university" className="text-sm font-medium text-white/70">University</label>
+        <select
+          id="university"
+          className="auth-input"
+          value={universityId}
+          onChange={(e) => setUniversityId(e.target.value as typeof universityId)}
+        >
+          <option value="none">No university selected</option>
+          {universities.map((uni) => (
+            <option key={uni.id} value={uni.id}>
+              {uni.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <label htmlFor="pronouns" className="text-sm font-medium text-white/70">Pronouns</label>
+            <input
+              id="pronouns"
+              className="auth-input"
+              value={pronouns}
+              onChange={(e) => setPronouns(e.target.value)}
+              placeholder="she/her · he/him · they/them"
+              maxLength={40}
+            />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <label htmlFor="bio" className="text-sm font-medium text-white/70">Bio</label>
+            <textarea
+              id="bio"
+              className="auth-input"
+              rows={4}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Short intro about your interests and goals (max 280 chars)."
+              maxLength={280}
+            />
+          </div>
         </div>
 
         {message ? (

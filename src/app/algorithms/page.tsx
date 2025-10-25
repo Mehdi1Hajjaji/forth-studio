@@ -3,6 +3,7 @@ import Link from "next/link";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PageWrapper } from "@/components/layout/PageWrapper";
 import { fetchProblemList } from "@/lib/data";
+import { getCurrentUser } from "@/lib/auth";
 
 const tracks = [
   "All",
@@ -20,12 +21,20 @@ export const metadata: Metadata = {
 };
 
 export default async function AlgorithmsPage() {
+  const user = await getCurrentUser();
   let problems = [] as Awaited<ReturnType<typeof fetchProblemList>>;
   try {
     problems = await fetchProblemList();
   } catch (err) {
     problems = [];
   }
+
+  const streakHref = user
+    ? "/dashboard"
+    : `/auth/sign-in?callbackUrl=${encodeURIComponent("/dashboard")}`;
+  const suggestHref = user
+    ? "/algorithms/suggest"
+    : `/auth/sign-in?callbackUrl=${encodeURIComponent("/algorithms/suggest")}`;
 
   return (
     <PageWrapper>
@@ -36,13 +45,13 @@ export default async function AlgorithmsPage() {
         actions={
           <>
             <Link
-              href="/auth/sign-in"
+              href={streakHref}
               className="rounded-full border border-white/15 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:text-white"
             >
               View my streak
             </Link>
             <Link
-              href="#filters"
+              href={suggestHref}
               className="inline-flex items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-accent-foreground transition hover:-translate-y-0.5 hover:bg-indigo-500"
             >
               Suggest a challenge

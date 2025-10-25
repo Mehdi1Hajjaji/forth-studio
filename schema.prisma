@@ -49,6 +49,12 @@ enum TagDomain {
   PROJECT
 }
 
+enum SuggestionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
   id             String      @id @default(cuid())
   username       String      @unique
@@ -95,6 +101,13 @@ model User {
   chatMessageUpvotes    ChatMessageUpvote[]
   codeCryBans           CodeCryBan[]
   codeCryMutes          CodeCryMute[]
+
+  // Karma relations
+  karmaReceived UserKarma[] @relation("UserKarmaRecipient")
+  karmaSent     UserKarma[] @relation("UserKarmaSender")
+
+  // Suggestions created by this user
+  challengeSuggestions ChallengeSuggestion[] @relation("ChallengeSuggestionsCreated")
 }
 
 
@@ -514,4 +527,37 @@ model CodeCryMute {
   user    User           @relation(fields: [userId], references: [id])
 
   @@id([sessionId, userId])
+}
+
+// Lightweight social karma
+model UserKarma {
+  id          String   @id @default(cuid())
+  recipientId String
+  senderId    String
+  createdAt   DateTime @default(now())
+  reason      String   @db.Text
+
+  recipient   User     @relation("UserKarmaRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender      User     @relation("UserKarmaSender", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, createdAt])
+  @@index([senderId, createdAt])
+}
+
+// Community challenge suggestions (admin review)
+model ChallengeSuggestion {
+  id           String           @id @default(cuid())
+  title        String
+  topic        String
+  difficulty   Difficulty
+  details      String           @db.Text
+  status       SuggestionStatus @default(PENDING)
+  createdAt    DateTime         @default(now())
+  reviewedAt   DateTime?
+  createdById  String
+
+  createdBy    User             @relation("ChallengeSuggestionsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([status, createdAt])
+  @@index([createdById, createdAt])
 }

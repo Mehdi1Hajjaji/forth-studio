@@ -20,6 +20,8 @@ export default async function SettingsPage() {
         username: true,
         role: true,
         universityId: true,
+        pronouns: true,
+        bio: true,
       },
     }),
     prisma.university.findMany({
@@ -44,6 +46,8 @@ export default async function SettingsPage() {
         <AccountProfileForm
           initialRole={normalizedRole}
           initialUniversityId={user.universityId}
+          initialPronouns={user.pronouns ?? ''}
+          initialBio={user.bio ?? ''}
           universities={universities}
         />
         <AccountPasswordForm />
@@ -51,4 +55,3 @@ export default async function SettingsPage() {
     </DashboardShell>
   );
 }
-

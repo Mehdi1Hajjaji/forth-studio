@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { signIn, signOut, useSession } from 'next-auth/react';
 
 type AuthButtonsProps = {
@@ -33,11 +34,31 @@ export function AuthButtons({ className }: AuthButtonsProps) {
   const containerClass = className ?? 'flex items-center gap-3 text-sm font-medium';
 
   if (status === 'authenticated' && session?.user) {
+    const userAny = session.user as any;
+    const username = userAny.username as string | undefined;
+    const isAdmin = (userAny.role === 'ADMIN');
     return (
       <div className={containerClass}>
-        <span className="hidden text-white/70 md:block">
-          {session.user.name ?? session.user.email}
-        </span>
+        {username ? (
+          <Link
+            href={`/profile/${username}`}
+            className="pill-button pill-button--ghost text-xs"
+            aria-label="My profile"
+            title="My profile"
+          >
+            My Profile
+          </Link>
+        ) : null}
+        {isAdmin ? (
+          <Link
+            href="/admin/challenges/suggestions"
+            className="pill-button pill-button--ghost text-xs"
+            aria-label="Admin"
+            title="Admin"
+          >
+            Suggestions
+          </Link>
+        ) : null}
         <button
           type="button"
           onClick={handleSignOut}

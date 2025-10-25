@@ -132,6 +132,15 @@ export default function ServicesMenuButton() {
           >
             Code & Cry Sessions
           </Link>
+          <Link
+            href="/leaderboard/karma"
+            className={styles.dropdownItem}
+            role="menuitem"
+            ref={(el) => { if (el) itemsRef.current[2] = el; }}
+            onClick={() => setIsOpen(false)}
+          >
+            Karma Leaderboard
+          </Link>
         </div>
       )}
     </div>

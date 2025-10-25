@@ -35,6 +35,14 @@ export async function PATCH(request: Request) {
   if (Object.prototype.hasOwnProperty.call(input, "universityId")) {
     data.universityId = input.universityId ?? null;
   }
+  if (Object.prototype.hasOwnProperty.call(input, 'pronouns')) {
+    const p = (input as any).pronouns;
+    data.pronouns = p ? String(p) : null;
+  }
+  if (Object.prototype.hasOwnProperty.call(input, 'bio')) {
+    const b = (input as any).bio;
+    data.bio = b ? String(b) : null;
+  }
 
   if (Object.keys(data).length === 0) {
     return jsonError("No changes provided.", 400);

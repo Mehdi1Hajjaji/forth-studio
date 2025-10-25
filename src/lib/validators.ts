@@ -124,6 +124,8 @@ export function parseResetPassword(payload: unknown): ResetPasswordInput {
 export const updateProfileSchema = z.object({
   role: z.enum(['student', 'mentor', 'investor']).optional(),
   universityId: cuid().nullable().optional(),
+  pronouns: z.string().trim().min(1).max(40).optional(),
+  bio: z.string().trim().min(1).max(280).optional(),
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
@@ -216,4 +218,19 @@ export function parseChatMessageInput(payload: unknown): ChatMessageInput {
 
 export function parseHelpRequestInput(payload: unknown): HelpRequestInput {
   return helpRequestInputSchema.parse(payload);
+}
+
+// Profile / Karma
+export const giveKarmaSchema = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(5, 'Please add a short reason (5–200 chars).')
+    .max(200, 'Keep the reason under 200 characters.'),
+});
+
+export type GiveKarmaInput = z.infer<typeof giveKarmaSchema>;
+
+export function parseGiveKarmaInput(payload: unknown): GiveKarmaInput {
+  return giveKarmaSchema.parse(payload);
 }
