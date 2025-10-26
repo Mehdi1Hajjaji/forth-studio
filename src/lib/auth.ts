@@ -22,12 +22,29 @@ function ensureSecret(): string {
   return secret;
 }
 
+const appUrl = process.env.NEXTAUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? "";
+const isSecureCookie = appUrl.startsWith("https://") || process.env.NODE_ENV === "production";
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   session: {
     strategy: "jwt",
   },
   secret: ensureSecret(),
+  // Explicit cookie settings to avoid domain/scheme mismatches between local and prod
+  cookies: {
+    sessionToken: {
+      name: isSecureCookie
+        ? "__Secure-next-auth.session-token"
+        : "next-auth.session-token",
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: isSecureCookie,
+      },
+    },
+  },
   // Warn in production if NEXTAUTH_URL is not set (can cause callback issues)
   ...(process.env.NODE_ENV === "production" && !process.env.NEXTAUTH_URL
     ? { events: { signIn: async () => console.warn("Warning: NEXTAUTH_URL is not set in production. Set it to your deployed URL.") } }

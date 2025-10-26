@@ -66,6 +66,24 @@ Local setup
 3) Update prisma: npx prisma migrate dev (adds INVESTOR + xp)
 4) Dev server: npm run dev
 
+Environments & Vercel setup
+- Local development (.env):
+  - NEXTAUTH_URL=http://localhost:3000
+  - NEXT_PUBLIC_APP_URL=http://localhost:3000
+  - Use a local DATABASE_URL (do NOT point to production)
+  - Keep NEXTAUTH_SECRET set locally for stable sessions
+- Vercel Production/Preview (Project Settings → Environment Variables):
+  - NEXTAUTH_URL=https://forth.studio (or your Vercel domain for previews)
+  - NEXT_PUBLIC_APP_URL=https://forth.studio
+  - NEXTAUTH_SECRET=generate with: openssl rand -base64 32
+  - DATABASE_URL=your production Postgres connection string
+  - RESEND_API_KEY and RESEND_FROM_EMAIL if sending emails
+
+Troubleshooting auth
+- Redirects from localhost to production: check NEXTAUTH_URL in your running environment; it must be http://localhost:3000 for local dev.
+- Login/sign-up failing on production: verify NEXTAUTH_URL and NEXTAUTH_SECRET are set in Vercel, and that DATABASE_URL is reachable. Use /api/auth/debug to inspect.
+- Session loops: ensure cookies aren’t forced to a fixed domain; we rely on default domain and set SameSite=lax with secure cookies on HTTPS only.
+
 Security notes
 - Credentials flow validates inputs with Zod and never reveals whether an email exists during reset requests
 - Passwords are hashed with bcryptjs (10 rounds); adjust as needed

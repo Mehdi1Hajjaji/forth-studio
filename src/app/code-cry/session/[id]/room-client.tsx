@@ -55,21 +55,24 @@ export default function LiveSessionClient({ sessionId, roomName, title, descript
 
   // No auto-join; fetch token on clicking "Join Room"
   useEffect(() => {
+    let mounted = true;
     async function enumerate() {
       try {
         await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
       } catch {}
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
+        if (!mounted) return;
         const aud = devices.filter((d) => d.kind === 'audioinput');
         const vid = devices.filter((d) => d.kind === 'videoinput');
         setAudioDevices(aud as any);
         setVideoDevices(vid as any);
-        if (aud[0] && !audioId) setAudioId(aud[0].deviceId);
-        if (vid[0] && !videoId) setVideoId(vid[0].deviceId);
+        setAudioId((prev) => prev || (aud[0]?.deviceId ?? ''));
+        setVideoId((prev) => prev || (vid[0]?.deviceId ?? ''));
       } catch {}
     }
     enumerate();
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
