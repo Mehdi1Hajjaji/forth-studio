@@ -31,6 +31,8 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   secret: ensureSecret(),
+  // Allow NextAuth to trust proxy headers on Vercel/hosted envs
+  trustHost: true,
   // Explicit cookie settings to avoid domain/scheme mismatches between local and prod
   cookies: {
     sessionToken: {
