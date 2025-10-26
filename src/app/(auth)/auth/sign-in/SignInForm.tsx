@@ -124,11 +124,33 @@ export function SignInForm() {
           <span className="h-px w-full bg-white/10" />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <AuthProviderButton icon="github" label="GitHub" />
-          <AuthProviderButton icon="google" label="Google" />
+          <AuthProviderButton
+            icon="github"
+            label="GitHub"
+            onClick={async () => {
+              setIsSubmitting(true);
+              try {
+                await signIn('github', { callbackUrl });
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
+          />
+          <AuthProviderButton
+            icon="google"
+            label="Google"
+            onClick={async () => {
+              setIsSubmitting(true);
+              try {
+                await signIn('google', { callbackUrl });
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
+          />
         </div>
         <p className="text-xs text-white/50">
-          Social sign-in is coming soon. Use your email and password for now.
+          If buttons do nothing, set provider env vars in Vercel.
         </p>
       </div>
     </AuthShell>
@@ -138,14 +160,16 @@ export function SignInForm() {
 function AuthProviderButton({
   icon,
   label,
+  onClick,
 }: {
   icon: 'github' | 'google';
   label: string;
+  onClick: () => void;
 }) {
   return (
     <button
       type="button"
-      disabled
+      onClick={onClick}
       className="flex items-center justify-center gap-3 rounded-xl border border-white/15 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white transition hover:border-accent hover:bg-accent/10 focus:outline-none focus:ring-2 focus:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-60"
     >
       <span className="inline-flex h-5 w-5 items-center justify-center">

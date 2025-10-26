@@ -30,6 +30,10 @@ export async function POST(request: Request) {
     return jsonError("User not found.", 404);
   }
 
+  if (!user.hashedPassword) {
+    return jsonError("Your account was created with OAuth. Set a password via reset flow first.", 400);
+  }
+
   const matches = await compare(input.currentPassword, user.hashedPassword);
   if (!matches) {
     return jsonError("Current password is incorrect.", 403);
@@ -40,4 +44,3 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ ok: true });
 }
-

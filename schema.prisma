@@ -57,9 +57,9 @@ enum SuggestionStatus {
 
 model User {
   id             String      @id @default(cuid())
-  username       String      @unique
+  username       String      @unique @default(cuid())
   email          String      @unique
-  hashedPassword String
+  hashedPassword String?
   name           String?
   pronouns       String?
   avatarUrl      String?
