@@ -47,14 +47,15 @@ export const authOptions: NextAuthOptions = {
       },
     },
   },
-  // Warn in production if NEXTAUTH_URL is not set (can cause callback issues)
-  ...(process.env.NODE_ENV === "production" && !process.env.NEXTAUTH_URL
-    ? { events: { signIn: async () => console.warn("Warning: NEXTAUTH_URL is not set in production. Set it to your deployed URL.") } }
-    : {}),
   pages: {
     signIn: "/auth/sign-in",
   },
   events: {
+    async signIn(_message) {
+      if (process.env.NODE_ENV === "production" && !process.env.NEXTAUTH_URL) {
+        console.warn("Warning: NEXTAUTH_URL is not set in production. Set it to your deployed URL.");
+      }
+    },
     createUser: async ({ user }) => {
       try {
         if (!user?.id) return;
