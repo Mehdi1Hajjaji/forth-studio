@@ -56,6 +56,9 @@ export const authOptions: NextAuthOptions = {
         console.warn("Warning: NEXTAUTH_URL is not set in production. Set it to your deployed URL.");
       }
     },
+    async error(message) {
+      console.error("NextAuth error event", message);
+    },
     createUser: async ({ user }) => {
       try {
         if (!user?.id) return;

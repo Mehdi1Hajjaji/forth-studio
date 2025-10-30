@@ -1,6 +1,10 @@
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // Optional: use a direct connection string for migrations (Prisma Migrate)
+  // Keep DATABASE_URL pointing at the pooler for runtime, and set DIRECT_URL
+  // to the direct database connection host/port.
+  directUrl = env("DIRECT_URL")
 }
 
 generator client {
