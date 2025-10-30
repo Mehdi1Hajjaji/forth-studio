@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { signIn, signOut, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 type AuthButtonsProps = {
   className?: string;
@@ -11,11 +12,13 @@ type AuthButtonsProps = {
 export function AuthButtons({ className }: AuthButtonsProps) {
   const { data: session, status } = useSession();
   const [isProcessing, setIsProcessing] = useState(false);
+  const router = useRouter();
 
   async function handleSignIn() {
     setIsProcessing(true);
     try {
-      await signIn(undefined, { callbackUrl: '/' });
+      // Route to the custom sign-in page instead of hitting NextAuth GET actions
+      router.push('/auth/sign-in');
     } finally {
       setIsProcessing(false);
     }
@@ -24,7 +27,9 @@ export function AuthButtons({ className }: AuthButtonsProps) {
   async function handleSignOut() {
     setIsProcessing(true);
     try {
-      await signOut({ callbackUrl: '/' });
+      // Avoid GET action; use redirect: false then navigate
+      await signOut({ redirect: false });
+      router.push('/');
     } finally {
       setIsProcessing(false);
     }

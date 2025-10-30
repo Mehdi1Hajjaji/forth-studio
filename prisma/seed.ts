@@ -27,24 +27,6 @@ async function ensureTag(domain: TagDomain, name: string) {
 }
 
 async function main() {
-  await prisma.$transaction([
-    prisma.vote.deleteMany(),
-    prisma.comment.deleteMany(),
-    prisma.submission.deleteMany(),
-    prisma.testcase.deleteMany(),
-    prisma.problemTag.deleteMany(),
-    prisma.storyTag.deleteMany(),
-    prisma.projectTag.deleteMany(),
-    prisma.problem.deleteMany(),
-    prisma.story.deleteMany(),
-    prisma.project.deleteMany(),
-    prisma.follow.deleteMany(),
-    prisma.notification.deleteMany(),
-    prisma.user.deleteMany(),
-    prisma.university.deleteMany(),
-    prisma.tag.deleteMany(),
-  ]);
-
   const [um5r, um6p, insaLyon] = await prisma.$transaction([
     prisma.university.create({
       data: {
