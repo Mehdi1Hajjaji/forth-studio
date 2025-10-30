@@ -131,22 +131,31 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
-      ? [
-          GitHubProvider({
-            clientId: process.env.GITHUB_CLIENT_ID as string,
-            clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-          }),
-        ]
-      : []),
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-      ? [
-          GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID as string,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-          }),
-        ]
-      : []),
+    // Support both *_CLIENT_ID/SECRET and *_ID/SECRET env names
+    ...(() => {
+      const clientId = process.env.GITHUB_CLIENT_ID ?? process.env.GITHUB_ID;
+      const clientSecret = process.env.GITHUB_CLIENT_SECRET ?? process.env.GITHUB_SECRET;
+      return clientId && clientSecret
+        ? [
+            GitHubProvider({
+              clientId: clientId as string,
+              clientSecret: clientSecret as string,
+            }),
+          ]
+        : [];
+    })(),
+    ...(() => {
+      const clientId = process.env.GOOGLE_CLIENT_ID ?? process.env.GOOGLE_ID;
+      const clientSecret = process.env.GOOGLE_CLIENT_SECRET ?? process.env.GOOGLE_SECRET;
+      return clientId && clientSecret
+        ? [
+            GoogleProvider({
+              clientId: clientId as string,
+              clientSecret: clientSecret as string,
+            }),
+          ]
+        : [];
+    })(),
   ],
   callbacks: {
     async session({ session, user }) {
