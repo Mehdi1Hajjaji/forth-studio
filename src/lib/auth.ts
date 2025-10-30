@@ -56,9 +56,6 @@ export const authOptions: NextAuthOptions = {
         console.warn("Warning: NEXTAUTH_URL is not set in production. Set it to your deployed URL.");
       }
     },
-    async error(message) {
-      console.error("NextAuth error event", message);
-    },
     createUser: async ({ user }) => {
       try {
         if (!user?.id) return;
@@ -91,6 +88,16 @@ export const authOptions: NextAuthOptions = {
       } catch (e) {
         console.warn('createUser username enrichment failed', e);
       }
+    },
+  },
+  logger: {
+    error(code, metadata) {
+      // eslint-disable-next-line no-console
+      console.error("NextAuth logger error", code, metadata);
+    },
+    warn(code) {
+      // eslint-disable-next-line no-console
+      console.warn("NextAuth logger warn", code);
     },
   },
   providers: [
