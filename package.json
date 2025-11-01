@@ -52,8 +52,5 @@
     "tsx": "^4.19.2",
     "typescript": "5.6.3"
   },
-  "postinstall": "prisma generate",
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  }
+  "postinstall": "prisma generate"
 }

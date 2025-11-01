@@ -1,3 +1,4 @@
+import "dotenv/config";
 import {
   Difficulty,
   PrismaClient,
@@ -8,7 +9,21 @@ import {
   TagDomain,
 } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const datasourceUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+
+if (!datasourceUrl) {
+  throw new Error(
+    "DATABASE_URL (or DIRECT_URL) must be set to run the seed script.",
+  );
+}
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: datasourceUrl,
+    },
+  },
+});
 
 async function ensureTag(domain: TagDomain, name: string) {
   return prisma.tag.upsert({

@@ -10,6 +10,30 @@ import prisma from "@/lib/prisma";
 
 const isProduction = process.env.NODE_ENV === "production";
 
+function getProfileImage(profile: unknown): string | null {
+  if (!profile || typeof profile !== "object") {
+    return null;
+  }
+
+  const record = profile as Record<string, unknown>;
+  const candidateKeys = [
+    "avatar_url",
+    "picture",
+    "image",
+    "avatarUrl",
+    "avatar",
+  ];
+
+  for (const key of candidateKeys) {
+    const value = record[key];
+    if (typeof value === "string" && value.trim()) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
 function ensureSecret(): string {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) {
@@ -62,7 +86,8 @@ const providers: NextAuthOptions["providers"] = [
         id: user.id,
         email: user.email,
         name: user.name ?? user.username,
-        image: user.avatarUrl ?? null,
+        image: user.image ?? user.avatarUrl ?? null,
+        avatarUrl: user.avatarUrl ?? undefined,
       };
     },
   }),
@@ -113,9 +138,33 @@ const authEvents: NonNullable<NextAuthOptions["events"]> = {
       if (!user?.id) return;
       const existing = await prisma.user.findUnique({
         where: { id: user.id },
-        select: { id: true, username: true, email: true },
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          avatarUrl: true,
+          image: true,
+        },
       });
       if (!existing) return;
+
+      const updates: {
+        image?: string | null;
+        avatarUrl?: string | null;
+      } = {};
+      const sourceImage =
+        (typeof user.image === "string" && user.image) ||
+        existing.image ||
+        existing.avatarUrl ||
+        null;
+
+      if (!existing.image && sourceImage) {
+        updates.image = sourceImage;
+      }
+
+      if (!existing.avatarUrl && sourceImage) {
+        updates.avatarUrl = sourceImage;
+      }
 
       const base = (existing.email ?? "user").split("@")[0];
       const clean =
@@ -146,6 +195,13 @@ const authEvents: NonNullable<NextAuthOptions["events"]> = {
           suffix += 1;
         }
       }
+
+      if (Object.keys(updates).length > 0) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: updates,
+        });
+      }
     } catch (error) {
       console.warn("createUser username enrichment failed", error);
     }
@@ -154,33 +210,71 @@ const authEvents: NonNullable<NextAuthOptions["events"]> = {
 
 const authCallbacks: NextAuthOptions["callbacks"] = {
   async signIn({ user, account, profile }) {
-    if (!account) {
+    try {
+      if (!account) {
+        return true;
+      }
+
+      if (account.type === "oauth") {
+        const emailFromProfile =
+          (typeof profile === "object" && profile?.email) || undefined;
+        const email = user.email ?? emailFromProfile;
+        if (!email) {
+          console.error(
+            `OAuth sign-in missing email for provider ${account.provider}`,
+          );
+          return "/auth/sign-in?error=missing_email";
+        }
+
+        const normalizedEmail = email.toLowerCase();
+        const existingUser = await prisma.user.findUnique({
+          where: { email: normalizedEmail },
+          select: {
+            id: true,
+            avatarUrl: true,
+            image: true,
+            name: true,
+          },
+        });
+
+        const profileImage = getProfileImage(profile) ?? user.image ?? null;
+
+        if (existingUser) {
+          user.id = existingUser.id;
+
+          const updates: {
+            image?: string | null;
+            avatarUrl?: string | null;
+            name?: string | null;
+          } = {};
+          if (profileImage) {
+            if (profileImage !== existingUser.image) {
+              updates.image = profileImage;
+            }
+            if (profileImage !== existingUser.avatarUrl) {
+              updates.avatarUrl = profileImage;
+            }
+          }
+          if (!existingUser.name && user.name) {
+            updates.name = user.name;
+          }
+
+        if (Object.keys(updates).length > 0) {
+          await prisma.user.update({
+            where: { id: existingUser.id },
+            data: updates,
+          });
+        }
+        } else if (profileImage) {
+          user.image = profileImage;
+        }
+      }
+
       return true;
+    } catch (error) {
+      console.error("Sign-in callback failed", error);
+      return "/auth/sign-in?error=oauth_error";
     }
-
-    if (account.type === "oauth") {
-      const emailFromProfile =
-        (typeof profile === "object" && profile?.email) || undefined;
-      const email = user.email ?? emailFromProfile;
-      if (!email) {
-        console.error(
-          `OAuth sign-in missing email for provider ${account.provider}`,
-        );
-        return false;
-      }
-
-      const normalizedEmail = email.toLowerCase();
-      const existingUser = await prisma.user.findUnique({
-        where: { email: normalizedEmail },
-        select: { id: true },
-      });
-
-      if (existingUser) {
-        user.id = existingUser.id;
-      }
-    }
-
-    return true;
   },
   async jwt({ token, user }) {
     if (user?.id) {
@@ -195,19 +289,41 @@ const authCallbacks: NextAuthOptions["callbacks"] = {
       token.role = user.role as string;
     }
 
+    if (!token.picture) {
+      if (user && "image" in user && typeof user.image === "string") {
+        token.picture = user.image;
+      } else if (
+        user &&
+        "avatarUrl" in user &&
+        typeof user.avatarUrl === "string"
+      ) {
+        token.picture = user.avatarUrl;
+      }
+    }
+
     if (!token.id && token.sub) {
       token.id = token.sub;
     }
 
-    if (token.id && (!token.username || !token.role)) {
+    if (token.id && (!token.username || !token.role || !token.picture)) {
       const dbUser = await prisma.user.findUnique({
         where: { id: token.id as string },
-        select: { username: true, role: true },
+        select: {
+          username: true,
+          role: true,
+          avatarUrl: true,
+          image: true,
+        },
       });
 
       if (dbUser) {
         token.username = dbUser.username;
         token.role = dbUser.role;
+        token.picture =
+          (token.picture as string | null | undefined) ??
+          dbUser.image ??
+          dbUser.avatarUrl ??
+          null;
       }
     }
 
@@ -225,13 +341,18 @@ const authCallbacks: NextAuthOptions["callbacks"] = {
       role: token.role as string | undefined,
     };
 
-    if (!session.user.username || !session.user.role) {
+    const tokenPicture =
+      typeof token.picture === "string" ? token.picture : null;
+    session.user.image = tokenPicture ?? session.user.image ?? null;
+
+    if (!session.user.username || !session.user.role || !session.user.image) {
       const dbUser = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: {
           username: true,
           role: true,
           avatarUrl: true,
+          image: true,
           name: true,
         },
       });
@@ -240,7 +361,8 @@ const authCallbacks: NextAuthOptions["callbacks"] = {
         session.user.username = dbUser.username;
         session.user.role = dbUser.role;
         session.user.name = session.user.name ?? dbUser.name ?? undefined;
-        session.user.image = session.user.image ?? dbUser.avatarUrl ?? null;
+        session.user.image =
+          session.user.image ?? dbUser.image ?? dbUser.avatarUrl ?? null;
       }
     }
 

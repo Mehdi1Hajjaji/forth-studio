@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -14,6 +14,27 @@ export function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') ?? '/';
+  const errorCode = searchParams.get('error');
+
+  const oauthErrorMessage = useMemo(() => {
+    switch (errorCode) {
+      case 'missing_email':
+        return 'Your OAuth provider did not share an email address. Please ensure your account has a public email or use a different sign-in method.';
+      case 'OAuthAccountNotLinked':
+        return 'We found an existing account with this email. Sign in with your original provider, then link new providers from Settings.';
+      case 'AccessDenied':
+        return 'Access was denied by the provider. Please try again or check your OAuth app permissions.';
+      case 'Configuration':
+        return 'Authentication is temporarily unavailable due to a configuration issue. Please try again shortly.';
+      case 'oauth_error':
+        return 'Something went wrong while connecting to your provider. Please try again or use another login option.';
+      case 'Callback':
+      case 'CallbackRouteError':
+        return 'We were unable to finish the OAuth callback. Check that the redirect URL matches your provider settings.';
+      default:
+        return null;
+    }
+  }, [errorCode]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -104,11 +125,14 @@ export function SignInForm() {
           />
           <label htmlFor="remember">Keep me signed in on this device</label>
         </div>
-        {error ? (
-          <p className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
-            {error}
+        {[error, oauthErrorMessage].filter(Boolean).map((message) => (
+          <p
+            key={message}
+            className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-2 text-sm text-red-200"
+          >
+            {message}
           </p>
-        ) : null}
+        ))}
         <button
           type="submit"
           disabled={isSubmitting}

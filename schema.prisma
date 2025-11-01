@@ -67,6 +67,7 @@ model User {
   name           String?
   pronouns       String?
   avatarUrl      String?
+  image          String?
   bio            String?
   major          String?
   graduationYear Int?
