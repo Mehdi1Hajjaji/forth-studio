@@ -529,7 +529,7 @@ export async function fetchDashboardData(userId?: string) {
 }
 
 export async function fetchCampusHighlights() {
-  const universities = await prisma.university.findMany({
+  const universities = await prisma.institution.findMany({
     take: 4,
     orderBy: { createdAt: "asc" },
   });
@@ -565,7 +565,7 @@ export async function fetchTopTags(domain: TagDomain, limit = 6) {
 
 export async function fetchStoryFilterOptions() {
   const [universities, tags] = await Promise.all([
-    prisma.university.findMany({
+    prisma.institution.findMany({
       where: {
         stories: {
           some: { status: StoryStatus.PUBLISHED },

@@ -11,7 +11,7 @@ export default async function SettingsPage() {
     redirect("/auth/sign-in?callbackUrl=/settings");
   }
 
-  const [user, universities] = await Promise.all([
+  const [user, institutions] = await Promise.all([
     prisma.user.findUnique({
       where: { id: sessionUser.id },
       select: {
@@ -24,7 +24,7 @@ export default async function SettingsPage() {
         bio: true,
       },
     }),
-    prisma.university.findMany({
+    prisma.institution.findMany({
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
@@ -48,7 +48,7 @@ export default async function SettingsPage() {
           initialUniversityId={user.universityId}
           initialPronouns={user.pronouns ?? ''}
           initialBio={user.bio ?? ''}
-          universities={universities}
+          universities={institutions}
         />
         <AccountPasswordForm />
       </div>
