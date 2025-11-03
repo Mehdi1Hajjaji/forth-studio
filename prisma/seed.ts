@@ -1,5 +1,8 @@
-import "dotenv/config";
+﻿import "dotenv/config";
 import {
+  AffiliationStatus,
+  AffiliationType,
+  BadgeVisibility,
   Difficulty,
   PrismaClient,
   ProjectStatus,
@@ -7,6 +10,7 @@ import {
   StoryStatus,
   SubmissionStatus,
   TagDomain,
+  TagVersionEvent,
 } from "@prisma/client";
 
 const datasourceUrl = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
@@ -37,106 +41,320 @@ async function ensureTag(domain: TagDomain, name: string) {
     create: {
       domain,
       name,
+      slug: slugify(name),
+      versions: {
+        create: {
+          event: TagVersionEvent.CREATED,
+          name,
+          payload: { seeded: true },
+        },
+      },
     },
   });
 }
 
-async function main() {
-  const [um5r, um6p, insaLyon] = await prisma.$transaction([
-    prisma.university.create({
-      data: {
-        name: "Mohammed V University",
-        slug: "um5r",
-        country: "Morocco",
-        city: "Rabat",
-        description:
-          "Leading Moroccan university with vibrant CS and AI research communities.",
-      },
-    }),
-    prisma.university.create({
-      data: {
-        name: "Mohammed VI Polytechnic University",
-        slug: "um6p",
-        country: "Morocco",
-        city: "Benguerir",
-        description:
-          "Polytechnic campus focused on engineering, robotics, and sustainable tech.",
-      },
-    }),
-    prisma.university.create({
-      data: {
-        name: "INSA Lyon",
-        slug: "insa-lyon",
-        country: "France",
-        city: "Lyon",
-        description:
-          "French engineering school with a strong culture of hackathons and startups.",
-      },
-    }),
-  ]);
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+}
 
-  const [selma, aya, lukas, farah] = await prisma.$transaction([
-    prisma.user.create({
+function buildHandleFrom(input: string) {
+  const candidate = slugify(input || "member");
+  const handle = candidate || `member-${Math.random().toString(36).slice(2, 8)}`;
+  return {
+    handle,
+    canonical: handle.toLowerCase(),
+  };
+}
+
+async function main() {
+  const institutionSeed = [
+    {
+      name: "Massachusetts Institute of Technology",
+      slug: "mit",
+      country: "United States",
+      region: "North America",
+      city: "Cambridge",
+      description:
+        "Global research university pioneering advancements in engineering, computing, and entrepreneurship.",
+      websiteUrl: "https://www.mit.edu",
+      logoUrl: "https://assets.forth.studio/institutions/mit.png",
+      establishedYear: 1861,
+      rankingScore: 1,
+      tags: ["research", "entrepreneurship", "ai"],
+    },
+    {
+      name: "University of Tokyo",
+      slug: "u-tokyo",
+      country: "Japan",
+      region: "Asia",
+      city: "Tokyo",
+      description:
+        "Leading Asian institution with strengths in robotics, quantum computing, and interdisciplinary innovation.",
+      websiteUrl: "https://www.u-tokyo.ac.jp",
+      logoUrl: "https://assets.forth.studio/institutions/u-tokyo.png",
+      establishedYear: 1877,
+      rankingScore: 23,
+      tags: ["robotics", "quantum", "innovation"],
+    },
+    {
+      name: "ETH Zurich",
+      slug: "eth-zurich",
+      country: "Switzerland",
+      region: "Europe",
+      city: "Zurich",
+      description:
+        "Swiss university renowned for deep technical research and scale-up collaborations.",
+      websiteUrl: "https://ethz.ch",
+      logoUrl: "https://assets.forth.studio/institutions/eth-zurich.png",
+      establishedYear: 1855,
+      rankingScore: 8,
+      tags: ["sustainability", "robotics", "scaleup"],
+    },
+    {
+      name: "University of Cape Town",
+      slug: "uct",
+      country: "South Africa",
+      region: "Africa",
+      city: "Cape Town",
+      description:
+        "Pan-African innovation hub with strong programmes in data science and climate resilience.",
+      websiteUrl: "https://www.uct.ac.za",
+      logoUrl: "https://assets.forth.studio/institutions/uct.png",
+      establishedYear: 1829,
+      rankingScore: 109,
+      tags: ["climate", "data", "inclusion"],
+    },
+    {
+      name: "Pontificia Universidad Catolica de Chile",
+      slug: "puc-chile",
+      country: "Chile",
+      region: "Latin America",
+      city: "Santiago",
+      description:
+        "Latin American leader driving applied research in smart cities, health tech, and energy.",
+      websiteUrl: "https://www.uc.cl",
+      logoUrl: "https://assets.forth.studio/institutions/puc.png",
+      establishedYear: 1888,
+      rankingScore: 150,
+      tags: ["smart-cities", "healthtech", "energy"],
+    },
+    {
+      name: "Indian Institute of Technology Bombay",
+      slug: "iit-bombay",
+      country: "India",
+      region: "Asia",
+      city: "Mumbai",
+      description:
+        "Premier engineering institute fostering high-impact deep-tech startups and open source.",
+      websiteUrl: "https://www.iitb.ac.in",
+      logoUrl: "https://assets.forth.studio/institutions/iit-bombay.png",
+      establishedYear: 1958,
+      rankingScore: 45,
+      tags: ["deep-tech", "open-source", "startups"],
+    },
+  ] as const;
+
+  const institutions = await Promise.all(
+    institutionSeed.map((institution) =>
+      prisma.institution.upsert({
+        where: { slug: institution.slug },
+        update: {
+          country: institution.country,
+          region: institution.region,
+          city: institution.city,
+          description: institution.description,
+          websiteUrl: institution.websiteUrl,
+          logoUrl: institution.logoUrl,
+          establishedYear: institution.establishedYear,
+          rankingScore: institution.rankingScore,
+          tags: institution.tags,
+          reviewStatus: "APPROVED",
+        },
+        create: {
+          ...institution,
+          reviewStatus: "APPROVED",
+        },
+      }),
+    ),
+  );
+
+  const institutionBySlug = new Map(institutions.map((inst) => [inst.slug, inst]));
+
+  const mit = institutionBySlug.get("mit");
+  const iitBombay = institutionBySlug.get("iit-bombay");
+  const ethZurich = institutionBySlug.get("eth-zurich");
+  const capeTown = institutionBySlug.get("uct");
+  const tokyo = institutionBySlug.get("u-tokyo");
+  const pucChile = institutionBySlug.get("puc-chile");
+
+  if (!mit || !iitBombay || !ethZurich || !capeTown || !tokyo || !pucChile) {
+    throw new Error("Missing seeded institution records; ensure institutionSeed is aligned.");
+  }
+
+  const userSeed = [
+    {
+      username: "selma-b",
+      email: "selma@example.com",
+      name: "Selma B.",
+      pronouns: "She/Her",
+      bio: "Second-year CS student exploring GPU optimisations and inclusive tech education.",
+      major: "Computer Science",
+      graduationYear: new Date().getFullYear() + 1,
+      role: Role.STUDENT,
+      affiliationType: AffiliationType.STUDENT,
+      institutionSlug: "mit",
+    },
+    {
+      username: "aya-t",
+      email: "aya@example.com",
+      name: "Aya T.",
+      pronouns: "She/Her",
+      bio: "Full-stack engineer and mentor at forth.studio's live review cohort.",
+      major: "Software Engineering",
+      graduationYear: new Date().getFullYear(),
+      role: Role.MENTOR,
+      affiliationType: AffiliationType.MENTOR,
+      institutionSlug: "iit-bombay",
+    },
+    {
+      username: "lukas-p",
+      email: "lukas@example.com",
+      name: "Lukas P.",
+      pronouns: "He/Him",
+      bio: "Rust enthusiast exploring graph algorithms and functional programming.",
+      major: "Computer Science",
+      graduationYear: new Date().getFullYear() - 1,
+      role: Role.STUDENT,
+      affiliationType: AffiliationType.ALUMNI,
+      institutionSlug: "eth-zurich",
+    },
+    {
+      username: "farah-l",
+      email: "farah@example.com",
+      name: "Farah L.",
+      pronouns: "She/Her",
+      bio: "Transportation data analyst turning reinforcement learning into campus wins.",
+      major: "Data Science",
+      graduationYear: new Date().getFullYear(),
+      role: Role.STUDENT,
+      affiliationType: AffiliationType.STUDENT,
+      institutionSlug: "uct",
+    },
+  ] as const;
+
+  const passwordHash =
+    "$2b$10$CwTycUXWue0Thq9StjUM0uJ8w7oOJPfm6.H/EjV116IhVQbK5EOi.";
+
+  const userCreateOperations = userSeed.map((seedUser) => {
+    const institution = institutionBySlug.get(seedUser.institutionSlug);
+    if (!institution) {
+      throw new Error(`Missing institution seed for ${seedUser.institutionSlug}`);
+    }
+    const handle = buildHandleFrom(seedUser.username);
+    return prisma.user.create({
       data: {
-        username: "selma-b",
-        email: "selma@example.com",
-        hashedPassword:
-          "$2b$10$CwTycUXWue0Thq9StjUM0uJ8w7oOJPfm6.H/EjV116IhVQbK5EOi.",
-        name: "Selma B.",
-        pronouns: "She/Her",
-        bio: "Second-year CS student exploring GPU optimisations and inclusive tech education.",
-        major: "Computer Science",
-        graduationYear: new Date().getFullYear() + 1,
-        role: Role.STUDENT,
-        universityId: um5r.id,
+        username: seedUser.username,
+        email: seedUser.email,
+        handle: handle.handle,
+        handleCanonical: handle.canonical,
+        hashedPassword: passwordHash,
+        name: seedUser.name,
+        pronouns: seedUser.pronouns,
+        bio: seedUser.bio,
+        major: seedUser.major,
+        graduationYear: seedUser.graduationYear,
+        role: seedUser.role,
+        universityId: institution.id,
+        userHandles: {
+          create: {
+            handle: handle.handle,
+            handleCanonical: handle.canonical,
+            reason: "seed:init",
+          },
+        },
+        userRoles: {
+          create: {
+            role: seedUser.role,
+            grantedAt: new Date(),
+          },
+        },
+        userInstitutions: {
+          create: {
+            institutionId: institution.id,
+            type: seedUser.affiliationType,
+            status: AffiliationStatus.ACTIVE,
+            isPrimary: true,
+            title: seedUser.role === Role.MENTOR ? "Mentor" : "Member",
+          },
+        },
       },
-    }),
-    prisma.user.create({
-      data: {
-        username: "aya-t",
-        email: "aya@example.com",
-        hashedPassword:
-          "$2b$10$CwTycUXWue0Thq9StjUM0uJ8w7oOJPfm6.H/EjV116IhVQbK5EOi.",
-        name: "Aya T.",
-        pronouns: "She/Her",
-        bio: "Full-stack engineer and mentor at forth.studio UM6P chapter.",
-        major: "Software Engineering",
-        graduationYear: new Date().getFullYear(),
-        role: Role.MENTOR,
-        universityId: um6p.id,
+    });
+  });
+
+  const [selma, aya, lukas, farah] = await prisma.$transaction(userCreateOperations);
+
+  const resilienceBadge = await prisma.badge.create({
+    data: {
+      slug: "resilience-star",
+      name: "Resilience Star",
+      description: "Awarded to members who maintain a seven-day streak of accepted submissions.",
+      visibility: BadgeVisibility.PUBLIC,
+      createdById: aya.id,
+      versions: {
+        create: [
+          {
+            version: 1,
+            name: "Resilience Star v1",
+            description: "Original version for streak pioneers.",
+            data: { color: "#FBBF24", icon: "spark" },
+          },
+        ],
       },
-    }),
-    prisma.user.create({
-      data: {
-        username: "lukas-p",
-        email: "lukas@example.com",
-        hashedPassword:
-          "$2b$10$CwTycUXWue0Thq9StjUM0uJ8w7oOJPfm6.H/EjV116IhVQbK5EOi.",
-        name: "Lukas P.",
-        pronouns: "He/Him",
-        bio: "Rust enthusiast exploring graph algorithms and functional programming.",
-        major: "Computer Science",
-        graduationYear: new Date().getFullYear() - 1,
-        role: Role.STUDENT,
-        universityId: insaLyon.id,
+    },
+    include: {
+      versions: true,
+    },
+  });
+
+  await prisma.userBadgeGrant.create({
+    data: {
+      userId: selma.id,
+      badgeId: resilienceBadge.id,
+      badgeVersionId: resilienceBadge.versions[0].id,
+      grantedById: aya.id,
+      reason: "Maintained a streak of solving one algorithm challenge each day for 10 days.",
+      metadata: { streakDays: 10 },
+    },
+  });
+
+  await prisma.cohort.create({
+    data: {
+      slug: "global-mentorship-spring",
+      name: "Global Mentorship Sprint",
+      description: "Cross-campus mentorship pairing students with industry mentors for rapid project iteration.",
+      institutionId: tokyo.id,
+      startDate: new Date(new Date().getFullYear(), 1, 15),
+      endDate: new Date(new Date().getFullYear(), 3, 30),
+      createdById: aya.id,
+      members: {
+        create: [
+          {
+            userId: selma.id,
+            role: "Founder",
+          },
+          {
+            userId: aya.id,
+            role: "Mentor Lead",
+          },
+        ],
       },
-    }),
-    prisma.user.create({
-      data: {
-        username: "farah-l",
-        email: "farah@example.com",
-        hashedPassword:
-          "$2b$10$CwTycUXWue0Thq9StjUM0uJ8w7oOJPfm6.H/EjV116IhVQbK5EOi.",
-        name: "Farah L.",
-        pronouns: "She/Her",
-        bio: "Transportation data analyst turning reinforcement learning into campus wins.",
-        major: "Data Science",
-        graduationYear: new Date().getFullYear(),
-        role: Role.STUDENT,
-        universityId: um5r.id,
-      },
-    }),
-  ]);
+    },
+  });
 
   const graphTag = await ensureTag(TagDomain.PROBLEM, "Graphs");
   const greedyTag = await ensureTag(TagDomain.PROBLEM, "Greedy");
@@ -225,7 +443,7 @@ async function main() {
     data: {
       slug: "gpu-research-internship-rabat",
       authorId: selma.id,
-      universityId: um5r.id,
+      universityId: mit.id,
       title: "Landing a GPU research internship in Rabat",
       excerpt:
         "From robotics club debugging to a 40% training speedup that impressed lab directors.",
@@ -251,7 +469,7 @@ async function main() {
     data: {
       slug: "hackathon-to-startup-lyon-tech",
       authorId: lukas.id,
-      universityId: insaLyon.id,
+      universityId: ethZurich.id,
       title: "How Lyon Tech turned hackathon chaos into a startup",
       excerpt:
         "A 36-hour prototype became a climate-data SaaS after mentor-guided customer interviews.",
@@ -275,7 +493,7 @@ async function main() {
     data: {
       slug: "campus-shuttle-optimizer",
       ownerId: farah.id,
-      universityId: um5r.id,
+      universityId: capeTown.id,
       title: "Campus shuttle optimiser",
       summary:
         "Routing simulator that reduces shuttle wait time by 18 percent using historical GPS data and reinforcement learning.",
@@ -297,7 +515,7 @@ async function main() {
     data: {
       slug: "inclusive-keyboard-haptics",
       ownerId: aya.id,
-      universityId: um6p.id,
+      universityId: iitBombay.id,
       title: "Inclusive keyboard with haptics",
       summary:
         "An accessible keyboard with vibration feedback designed with visually impaired students.",

@@ -1,6 +1,6 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   // Optional: use a direct connection string for migrations (Prisma Migrate)
   // Keep DATABASE_URL pointing at the pooler for runtime, and set DIRECT_URL
   // to the direct database connection host/port.
@@ -16,6 +16,8 @@ enum Role {
   MENTOR
   INVESTOR
   ADMIN
+  STAFF
+  REVIEWER
 }
 
 enum Difficulty {
@@ -59,33 +61,72 @@ enum SuggestionStatus {
   REJECTED
 }
 
+enum InstitutionReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum AffiliationType {
+  STUDENT
+  ALUMNI
+  FACULTY
+  STAFF
+  MENTOR
+  PARTNER
+  OTHER
+}
+
+enum AffiliationStatus {
+  REQUESTED
+  ACTIVE
+  INACTIVE
+  REJECTED
+}
+
+enum BadgeVisibility {
+  PUBLIC
+  PRIVATE
+  UNLISTED
+}
+
+enum TagVersionEvent {
+  CREATED
+  UPDATED
+  DELETED
+  RESTORED
+}
+
 model User {
-  id             String      @id @default(cuid())
-  username       String      @unique @default(cuid())
-  email          String      @unique
-  hashedPassword String?
-  name           String?
-  pronouns       String?
-  avatarUrl      String?
-  image          String?
-  bio            String?
-  major          String?
-  graduationYear Int?
-  role           Role        @default(STUDENT)
-  xp             Int         @default(0)
-  universityId   String?
-  university     University? @relation(fields: [universityId], references: [id])
-  resilienceBadgeCount    Int       @default(0)
+  id                      String       @id @default(cuid())
+  username                String       @unique @default(cuid())
+  email                   String       @unique
+  handle                  String?      @unique
+  handleCanonical         String?      @unique
+  hashedPassword          String?
+  name                    String?
+  pronouns                String?
+  avatarUrl               String?
+  image                   String?
+  bio                     String?
+  major                   String?
+  graduationYear          Int?
+  role                    Role         @default(STUDENT)
+  xp                      Int          @default(0)
+  universityId            String?
+  university              Institution? @relation("UserPrimaryInstitution", fields: [universityId], references: [id])
+  resilienceBadgeCount    Int          @default(0)
   resilienceBadgeEarnedAt DateTime?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
 
   submissions         Submission[]
   stories             Story[]
   projects            Project[]
   comments            Comment[]
   votes               Vote[]
-  reviewedSubmissions Submission[]   @relation("SubmissionReviewer")
+  reviewedSubmissions Submission[]      @relation("SubmissionReviewer")
   notifications       Notification[]
   failPosts           FailPost[]
   failPostLikes       FailPostLike[]
@@ -95,14 +136,29 @@ model User {
   followers Follow[]  @relation("userFollowers")
   following Follow[]  @relation("userFollowing")
   Problem   Problem[]
-  
+
+  userHandles          UserHandleHistory[]
+  userRoles            UserRole[]
+  userInstitutions     UserInstitution[]
+  badgeDefinitions     Badge[]             @relation("BadgeCreatedBy")
+  badgeGrants          UserBadgeGrant[]
+  cohortMemberships    CohortMember[]
+  rolesGranted         UserRole[]          @relation("UserRoleGrantedBy")
+  institutionRequests  UserInstitution[]   @relation("UserInstitutionRequestedBy")
+  institutionApprovals UserInstitution[]   @relation("UserInstitutionApprovedBy")
+  badgeVersionsCreated BadgeVersion[]      @relation("BadgeVersionCreatedBy")
+  badgeGrantsIssued    UserBadgeGrant[]    @relation("BadgeGrantGrantedBy")
+  tagEventsAuthored    TagVersion[]        @relation("TagVersionActor")
+  cohortsCreated       Cohort[]            @relation("CohortCreatedBy")
+  tagsCreated          Tag[]               @relation("TagCreatedBy")
+
   accounts Account[]
   sessions Session[]
 
   // Code & Cry relations
-  codeCryHostedSessions CodeCrySession[] @relation("CodeCryHost")
-  codeCryChatMessages   ChatMessage[]    @relation("ChatMessageSender")
-  helpRequests          HelpRequest[]    @relation("HelpRequester")
+  codeCryHostedSessions CodeCrySession[]    @relation("CodeCryHost")
+  codeCryChatMessages   ChatMessage[]       @relation("ChatMessageSender")
+  helpRequests          HelpRequest[]       @relation("HelpRequester")
   chatMessageUpvotes    ChatMessageUpvote[]
   codeCryBans           CodeCryBan[]
   codeCryMutes          CodeCryMute[]
@@ -115,19 +171,214 @@ model User {
   challengeSuggestions ChallengeSuggestion[] @relation("ChallengeSuggestionsCreated")
 }
 
+model Institution {
+  id              String                  @id @default(cuid())
+  name            String                  @unique
+  slug            String                  @unique
+  country         String
+  region          String?
+  city            String?
+  description     String?
+  websiteUrl      String?
+  logoUrl         String?
+  establishedYear Int?
+  rankingScore    Int?
+  tags            String[]
+  reviewStatus    InstitutionReviewStatus @default(PENDING)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  archivedAt      DateTime?
 
-model University {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String   @unique
-  country     String
-  city        String?
+  members      UserInstitution[]
+  stories      Story[]
+  projects     Project[]
+  primaryUsers User[]            @relation("UserPrimaryInstitution")
+  cohorts      Cohort[]          @relation("InstitutionCohorts")
+
+  @@index([slug])
+  @@index([country, region])
+  @@index([reviewStatus])
+}
+
+model UserHandleHistory {
+  id              String    @id @default(cuid())
+  userId          String
+  handle          String
+  handleCanonical String
+  reason          String?
+  activatedAt     DateTime  @default(now())
+  releasedAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, activatedAt])
+}
+
+model UserRole {
+  id          String    @id @default(cuid())
+  userId      String
+  role        Role
+  grantedById String?
+  grantedAt   DateTime  @default(now())
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  reason      String?
+  scope       String?
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  grantedBy User? @relation("UserRoleGrantedBy", fields: [grantedById], references: [id])
+
+  @@index([userId, role, deletedAt])
+  @@index([role, createdAt])
+}
+
+model UserInstitution {
+  id            String            @id @default(cuid())
+  userId        String
+  institutionId String
+  type          AffiliationType
+  status        AffiliationStatus @default(REQUESTED)
+  isPrimary     Boolean           @default(false)
+  title         String?
+  department    String?
+  startDate     DateTime?
+  endDate       DateTime?
+  metadata      Json?
+  requestedById String?
+  approvedById  String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  deletedAt     DateTime?
+
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution    @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+  requestedBy User?          @relation("UserInstitutionRequestedBy", fields: [requestedById], references: [id])
+  approvedBy  User?          @relation("UserInstitutionApprovedBy", fields: [approvedById], references: [id])
+  cohorts     CohortMember[]
+
+  @@index([institutionId, status])
+  @@index([userId, isPrimary])
+}
+
+model Badge {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  name        String
   description String?
+  iconUrl     String?
+  visibility  BadgeVisibility @default(PUBLIC)
+  createdById String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  deletedAt   DateTime?
+
+  createdBy User?            @relation("BadgeCreatedBy", fields: [createdById], references: [id])
+  versions  BadgeVersion[]
+  grants    UserBadgeGrant[]
+
+  @@index([visibility])
+  @@index([deletedAt])
+}
+
+model BadgeVersion {
+  id          String   @id @default(cuid())
+  badgeId     String
+  version     Int
+  name        String
+  description String?
+  data        Json?
+  createdById String?
   createdAt   DateTime @default(now())
 
-  members  User[]
-  stories  Story[]
-  projects Project[]
+  badge     Badge            @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  createdBy User?            @relation("BadgeVersionCreatedBy", fields: [createdById], references: [id])
+  grants    UserBadgeGrant[] @relation("BadgeVersionGrants")
+
+  @@unique([badgeId, version])
+  @@index([createdAt])
+}
+
+model UserBadgeGrant {
+  id             String    @id @default(cuid())
+  userId         String
+  badgeId        String
+  badgeVersionId String?
+  grantedById    String?
+  grantedAt      DateTime  @default(now())
+  reason         String?
+  metadata       Json?
+  revokedAt      DateTime?
+  deletedAt      DateTime?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge        Badge         @relation(fields: [badgeId], references: [id])
+  badgeVersion BadgeVersion? @relation("BadgeVersionGrants", fields: [badgeVersionId], references: [id])
+  grantedBy    User?         @relation("BadgeGrantGrantedBy", fields: [grantedById], references: [id])
+
+  @@index([userId, grantedAt])
+  @@index([badgeId, grantedAt])
+}
+
+model TagVersion {
+  id          String          @id @default(cuid())
+  tagId       String
+  event       TagVersionEvent
+  name        String
+  description String?
+  color       String?
+  payload     Json?
+  actorId     String?
+  appliedAt   DateTime        @default(now())
+
+  tag   Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  actor User? @relation("TagVersionActor", fields: [actorId], references: [id])
+
+  @@index([tagId, appliedAt])
+  @@index([actorId, appliedAt])
+}
+
+model Cohort {
+  id            String    @id @default(cuid())
+  institutionId String?
+  slug          String    @unique
+  name          String
+  description   String?
+  startDate     DateTime?
+  endDate       DateTime?
+  createdById   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  archivedAt    DateTime?
+
+  institution Institution?   @relation("InstitutionCohorts", fields: [institutionId], references: [id])
+  members     CohortMember[]
+  createdBy   User?          @relation("CohortCreatedBy", fields: [createdById], references: [id])
+
+  @@index([institutionId, startDate])
+  @@index([archivedAt])
+}
+
+model CohortMember {
+  id                String    @id @default(cuid())
+  cohortId          String
+  userId            String
+  userInstitutionId String?
+  role              String?
+  joinedAt          DateTime  @default(now())
+  leftAt            DateTime?
+  metadata          Json?
+  deletedAt         DateTime?
+
+  cohort          Cohort           @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userInstitution UserInstitution? @relation(fields: [userInstitutionId], references: [id])
+
+  @@index([cohortId, deletedAt])
+  @@index([userId, deletedAt])
 }
 
 model Problem {
@@ -203,8 +454,8 @@ model Story {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
-  author     User        @relation(fields: [authorId], references: [id])
-  university University? @relation(fields: [universityId], references: [id])
+  author     User         @relation(fields: [authorId], references: [id])
+  university Institution? @relation(fields: [universityId], references: [id])
   tags       StoryTag[]
   comments   Comment[]
   votes      Vote[]
@@ -225,7 +476,7 @@ model Project {
   updatedAt    DateTime      @updatedAt
 
   owner      User         @relation(fields: [ownerId], references: [id])
-  university University?  @relation(fields: [universityId], references: [id])
+  university Institution? @relation(fields: [universityId], references: [id])
   tags       ProjectTag[]
   comments   Comment[]
   votes      Vote[]
@@ -285,19 +536,19 @@ model Follow {
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String? @db.Text
-  access_token       String? @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String? @db.Text
-  session_state      String?
-  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -312,11 +563,11 @@ model Session {
 
 model VerificationToken {
   identifier String
-  token      String @unique
+  token      String   @unique
   expires    DateTime
+
   @@unique([identifier, token])
 }
-
 
 model FailPost {
   id             String   @id @default(cuid())
@@ -329,7 +580,7 @@ model FailPost {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  author   User             @relation(fields: [userId], references: [id])
+  author   User              @relation(fields: [userId], references: [id])
   likes    FailPostLike[]
   comments FailPostComment[]
   awards   ResilienceAward[]
@@ -372,19 +623,28 @@ model ResilienceAward {
   @@unique([periodStart, periodEnd])
 }
 
-
-
 model Tag {
-  id        String    @id @default(cuid())
-  domain    TagDomain
-  name      String
-  createdAt DateTime  @default(now())
+  id          String    @id @default(cuid())
+  domain      TagDomain
+  name        String
+  slug        String?
+  description String?
+  color       String?
+  createdById String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
   problemTags ProblemTag[]
   storyTags   StoryTag[]
   projectTags ProjectTag[]
+  versions    TagVersion[]
+  createdBy   User?        @relation("TagCreatedBy", fields: [createdById], references: [id])
 
   @@unique([domain, name], map: "domain_name")
+  @@unique([domain, slug], map: "domain_slug_unique")
+  @@index([slug])
+  @@index([deletedAt])
 }
 
 model ProblemTag {
@@ -419,36 +679,36 @@ model ProjectTag {
 
 /// Code & Cry live coding sessions — weekly live co-coding with chat and help requests.
 model CodeCrySession {
-  id            String   @id @default(cuid())
-  hostId        String
+  id           String    @id @default(cuid())
+  hostId       String
   /// Unique LiveKit room name used for presenters/viewers to join
-  roomName      String   @unique
-  title         String
-  description   String?
-  isAnonymous   Boolean  @default(false)
+  roomName     String    @unique
+  title        String
+  description  String?
+  isAnonymous  Boolean   @default(false)
   /// Optional scheduled time; used to show upcoming sessions
-  scheduledFor  DateTime?
-  startedAt     DateTime?
-  endedAt       DateTime?
+  scheduledFor DateTime?
+  startedAt    DateTime?
+  endedAt      DateTime?
   /// Optional external stream or public watch URL (e.g., recording)
-  streamUrl     String?
+  streamUrl    String?
   /// Optional archived recording URL for replays/highlights
-  recordingUrl  String?
+  recordingUrl String?
   /// Chat and room controls
-  isChatClosed  Boolean  @default(false)
-  isViewOnly    Boolean  @default(false)
-  isStuck       Boolean  @default(false)
+  isChatClosed Boolean   @default(false)
+  isViewOnly   Boolean   @default(false)
+  isStuck      Boolean   @default(false)
   /// Simple code sharing state (MVP)
-  codeContent   String?  @db.Text
-  codeLanguage  String?  @default("plaintext")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  codeContent  String?   @db.Text
+  codeLanguage String?   @default("plaintext")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  host          User     @relation("CodeCryHost", fields: [hostId], references: [id])
-  chatMessages  ChatMessage[]
-  helpRequests  HelpRequest[]
-  bans          CodeCryBan[]
-  mutes         CodeCryMute[]
+  host         User          @relation("CodeCryHost", fields: [hostId], references: [id])
+  chatMessages ChatMessage[]
+  helpRequests HelpRequest[]
+  bans         CodeCryBan[]
+  mutes        CodeCryMute[]
 
   @@index([hostId])
   @@index([scheduledFor])
@@ -466,18 +726,18 @@ model ChatMessage {
   sentAt      DateTime @default(now())
   upvotes     Int      @default(0)
 
-  session     CodeCrySession @relation(fields: [sessionId], references: [id])
-  sender      User?          @relation("ChatMessageSender", fields: [senderId], references: [id])
-  votes       ChatMessageUpvote[]
+  session CodeCrySession      @relation(fields: [sessionId], references: [id])
+  sender  User?               @relation("ChatMessageSender", fields: [senderId], references: [id])
+  votes   ChatMessageUpvote[]
 
   @@index([sessionId])
   @@index([senderId])
 }
 
 model ChatMessageUpvote {
-  userId     String
-  messageId  String
-  createdAt  DateTime @default(now())
+  userId    String
+  messageId String
+  createdAt DateTime @default(now())
 
   user    User        @relation(fields: [userId], references: [id])
   message ChatMessage @relation(fields: [messageId], references: [id])
@@ -491,18 +751,18 @@ enum HelpRequestStatus {
 }
 
 model HelpRequest {
-  id           String            @id @default(cuid())
-  sessionId    String
-  requesterId  String?
-  isAnonymous  Boolean           @default(false)
+  id            String            @id @default(cuid())
+  sessionId     String
+  requesterId   String?
+  isAnonymous   Boolean           @default(false)
   requesterName String?
-  topic        String
-  details      String?
-  status       HelpRequestStatus @default(OPEN)
-  createdAt    DateTime          @default(now())
+  topic         String
+  details       String?
+  status        HelpRequestStatus @default(OPEN)
+  createdAt     DateTime          @default(now())
 
-  session      CodeCrySession @relation(fields: [sessionId], references: [id])
-  requester    User?          @relation("HelpRequester", fields: [requesterId], references: [id])
+  session   CodeCrySession @relation(fields: [sessionId], references: [id])
+  requester User?          @relation("HelpRequester", fields: [requesterId], references: [id])
 
   @@index([sessionId])
   @@index([requesterId])
@@ -542,8 +802,8 @@ model UserKarma {
   createdAt   DateTime @default(now())
   reason      String   @db.Text
 
-  recipient   User     @relation("UserKarmaRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
-  sender      User     @relation("UserKarmaSender", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient User @relation("UserKarmaRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  sender    User @relation("UserKarmaSender", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@index([recipientId, createdAt])
   @@index([senderId, createdAt])
@@ -551,17 +811,17 @@ model UserKarma {
 
 // Community challenge suggestions (admin review)
 model ChallengeSuggestion {
-  id           String           @id @default(cuid())
-  title        String
-  topic        String
-  difficulty   Difficulty
-  details      String           @db.Text
-  status       SuggestionStatus @default(PENDING)
-  createdAt    DateTime         @default(now())
-  reviewedAt   DateTime?
-  createdById  String
+  id          String           @id @default(cuid())
+  title       String
+  topic       String
+  difficulty  Difficulty
+  details     String           @db.Text
+  status      SuggestionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  reviewedAt  DateTime?
+  createdById String
 
-  createdBy    User             @relation("ChallengeSuggestionsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  createdBy User @relation("ChallengeSuggestionsCreated", fields: [createdById], references: [id], onDelete: Cascade)
 
   @@index([status, createdAt])
   @@index([createdById, createdAt])
