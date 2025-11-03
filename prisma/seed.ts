@@ -72,7 +72,19 @@ function buildHandleFrom(input: string) {
 }
 
 async function main() {
-  const institutionSeed = [
+  const institutionSeed: Array<{
+    name: string;
+    slug: string;
+    country: string;
+    region?: string | null;
+    city?: string | null;
+    description?: string | null;
+    websiteUrl?: string | null;
+    logoUrl?: string | null;
+    establishedYear?: number | null;
+    rankingScore?: number | null;
+    tags: string[];
+  }> = [
     {
       name: "Massachusetts Institute of Technology",
       slug: "mit",
@@ -157,7 +169,7 @@ async function main() {
       rankingScore: 45,
       tags: ["deep-tech", "open-source", "startups"],
     },
-  ] as const;
+  ];
 
   const institutions = await Promise.all(
     institutionSeed.map((institution) =>
